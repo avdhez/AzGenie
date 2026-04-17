@@ -13,7 +13,7 @@ import (
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const (
-	geminiModel  = "gemini-2.0-flash"
+	geminiModel  = "gemini-2.5-flash"
 	geminiURL    = "https://generativelanguage.googleapis.com/v1beta/models/" + geminiModel + ":generateContent"
 	systemPrompt = `You are 'The Mystic Node', an all-knowing entity. You can guess any character, object, animal, or concept in existence.
 Rules:
