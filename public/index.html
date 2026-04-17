@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gemini Akinator</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f4f4f9; }
+        #game-box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; }
+        .btn { padding: 10px 25px; margin: 10px; cursor: pointer; border: none; border-radius: 5px; font-size: 16px; }
+        .yes { background: #4CAF50; color: white; }
+        .no { background: #f44336; color: white; }
+    </style>
+</head>
+<body>
+    <div id="game-box">
+        <h1 id="question">Thinking of a question...</h1>
+        <div id="controls">
+            <button class="btn yes" onclick="sendMove('Yes')">Yes</button>
+            <button class="btn no" onclick="sendMove('No')">No</button>
+        </div>
+    </div>
+
+    <script>
+        let history = [];
+        
+        async function sendMove(input) {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ history, userInput: input })
+            });
+            const data = await res.json();
+            
+            if(data.isGuess) {
+                document.getElementById('question').innerText = `Is it ${data.finalAnswer}?`;
+                document.getElementById('controls').innerHTML = `
+                    <button class="btn yes" onclick="location.reload()">Yes! (Reset)</button>
+                    <button class="btn no" onclick="learn('${data.finalAnswer}')">No, you lost.</button>
+                `;
+            } else {
+                document.getElementById('question').innerText = data.question;
+                history.push({ role: "user", text: input });
+                history.push({ role: "model", text: JSON.stringify(data) });
+            }
+        }
+
+        async function learn(wrongGuess) {
+            const correctThing = prompt("What were you thinking of?");
+            await fetch('/api/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ history, isCorrection: true, correctThing })
+            });
+            alert("I won't forget that! Restarting...");
+            location.reload();
+        }
+
+        // Start game
+        sendMove("Let's start the game.");
+    </script>
+</body>
+</html>
