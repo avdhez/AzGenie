@@ -142,7 +142,7 @@
         </div>
     </div>
 
-    <script>
+  <script>
         let history = [];
         let currentGuess = "";
         
@@ -167,36 +167,45 @@
 
         async function sendMove(input) {
             setLoading(true);
-            
-            if (input !== 'Start') {
-                history.push({ role: "user", text: input });
-            }
+            const actualInput = input === 'Start' ? "Let's start" : input;
 
             try {
                 const res = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ history, userInput: input === 'Start' ? "Let's start" : input })
+                    body: JSON.stringify({ history, userInput: actualInput })
                 });
                 
-                // If the response is not ok (e.g. 500 error from Vercel), throw an error to catch block
                 if (!res.ok) throw new Error("Server error");
-                
                 const data = await res.json();
                 
+                // If the backend sent an error message disguised as a question
+                if (data.question && data.question.includes("SERVER ERROR")) {
+                    questionEl.innerText = data.question;
+                    setLoading(false);
+                    return;
+                }
+
                 if (data.isGuess) {
                     currentGuess = data.finalAnswer;
                     questionEl.innerText = `Is it ${data.finalAnswer}?`;
                     controls.style.display = 'none';
                     resultControls.style.display = 'block';
                     questionEl.classList.remove('thinking');
+                    
+                    // Save history so it can learn if it failed
+                    history.push({ role: "user", text: actualInput });
+                    history.push({ role: "model", text: JSON.stringify(data) });
                 } else {
                     questionEl.innerText = data.question;
+                    
+                    // THE FIX: Perfect ping-pong history (User first, then Model)
+                    history.push({ role: "user", text: actualInput });
                     history.push({ role: "model", text: JSON.stringify(data) });
+                    
                     setLoading(false);
                 }
             } catch (error) {
-                // If this triggers, your backend is not running or the API key is broken
                 console.error(error);
                 questionEl.innerText = "Connection lost to the Mystic Node. Try again.";
                 setLoading(false);
