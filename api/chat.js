@@ -53,7 +53,8 @@ module.exports = async function handler(req, res) {
     } catch (error) {
         console.error("API Crash Details:", error);
         res.status(200).json({ 
-            question: `SERVER ERROR: ${error.message.substring(0, 50)}...`, 
+            // THE FIX: Removed .substring(0, 50) so we can see the full error if it happens again
+            question: `SERVER ERROR: ${error.message}`, 
             isGuess: false 
         });
     }
