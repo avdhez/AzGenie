@@ -16,9 +16,9 @@ module.exports = async function handler(req, res) {
     try {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         
-        // THE FIX: Appended '-latest' to the model name
+        // THE FINAL FIX: Using the explicit, universally available 8B model
         const model = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash-latest",
+            model: "gemini-1.5-flash-8b",
             systemInstruction: `
                 You are 'The Mystic Node', an all-knowing entity. You can guess any character, object, animal, or concept in existence.
                 Rules:
