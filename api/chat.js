@@ -16,9 +16,9 @@ module.exports = async function handler(req, res) {
     try {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         
-        // FIX 1 & 2: Added systemInstruction directly to the model so it never forgets the rules
+        // THE FIX: Appended '-latest' to the model name
         const model = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash",
+            model: "gemini-1.5-flash-latest",
             systemInstruction: `
                 You are 'The Mystic Node', an all-knowing entity. You can guess any character, object, animal, or concept in existence.
                 Rules:
@@ -39,7 +39,6 @@ module.exports = async function handler(req, res) {
             return res.json({ reset: true });
         }
 
-        // THE FIX: Changed start_chat to startChat (JavaScript uses camelCase)
         const chat = model.startChat({ history: safeHistory });
         
         const result = await chat.sendMessage(userInput || "Let's start!");
@@ -53,7 +52,6 @@ module.exports = async function handler(req, res) {
     } catch (error) {
         console.error("API Crash Details:", error);
         res.status(200).json({ 
-            // THE FIX: Removed .substring(0, 50) so we can see the full error if it happens again
             question: `SERVER ERROR: ${error.message}`, 
             isGuess: false 
         });
