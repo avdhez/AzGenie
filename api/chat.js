@@ -2,10 +2,15 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-export default async function handler(req, res) {
+// We changed 'export default' to 'module.exports' here!
+module.exports = async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
     const { history, userInput, isCorrection, correctThing } = req.body;
+    
+    // Safety check just in case history is empty
+    const safeHistory = history ? history.map(h => ({ role: h.role, parts: [{ text: h.text }] })) : [];
+
     const model = genAI.getGenerativeModel({ model_name: "gemini-1.5-flash" });
 
     let systemInstruction = `
@@ -18,26 +23,25 @@ export default async function handler(req, res) {
     `;
 
     if (isCorrection) {
-        const learningPrompt = `I was thinking of "${correctThing}". Review our history: ${JSON.stringify(history)}. Learn from this mistake for the future. Reply with strict JSON: {"question": "Got it! I will remember that. Let's play again!"}`;
+        const learningPrompt = `I was thinking of "${correctThing}". Review our history: ${JSON.stringify(safeHistory)}. Learn from this mistake for the future. Reply with strict JSON: {"question": "Got it! I will remember that. Let's play again!"}`;
         await model.generateContent([systemInstruction, learningPrompt]);
         return res.json({ reset: true });
     }
 
     const chat = model.start_chat({
-        history: history.map(h => ({ role: h.role, parts: [{ text: h.text }] }))
+        history: safeHistory
     });
 
     try {
         const result = await chat.sendMessage(userInput || "Let's start!");
         let responseText = result.response.text();
         
-        // CRITICAL FIX: Strip markdown formatting if Gemini adds it
+        // Strip markdown formatting if Gemini adds it
         responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
         
         res.status(200).json(JSON.parse(responseText));
     } catch (error) {
         console.error("API Error:", error);
-        // Fallback response so the app doesn't freeze
-        res.status(200).json({ question: "My mind is cloudy. Say 'Yes' to try asking again.", isGuess: false });
+        res.status(500).json({ error: "Failed to connect to AI" });
     }
-}
+};
