@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
             
             // Downgraded to 1.5-flash to get 15 requests per minute instead of 5
             const model = genAI.getGenerativeModel({ 
-                model: "gemini-1.5-flash",
+                model: "gemini-2.0-flash",
                 systemInstruction: `
                     You are 'The Mystic Node', an Akinator-style mind-reading bot. You must figure out what the user is thinking of.
                     CRITICAL RULES:
