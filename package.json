@@ -1,7 +1,4 @@
 {
-  "name": "gemini-akinator",
-  "version": "1.0.0",
-  "dependencies": {
-    "@google/generative-ai": "^0.21.0"
-  }
+  "name": "mystic-node-openrouter",
+  "version": "1.0.0"
 }
