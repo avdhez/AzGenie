@@ -8,24 +8,23 @@ module.exports = async function handler(req, res) {
         return res.status(200).json({ question: "SYSTEM ERROR: Missing GEMINI_API_KEYS.", isGuess: false });
     }
 
-    // 1. Create an array of your friends' keys and shuffle them randomly
-    let keyArray = keysString.split(',').map(k => k.trim());
+    // 1. Create an array of keys and shuffle them randomly
+    let keyArray = keysString.split(',').map(k => k.trim()).filter(k => k.length > 0);
     keyArray = keyArray.sort(() => 0.5 - Math.random());
 
     const { history, userInput, isCorrection, correctThing } = req.body;
     const safeHistory = history ? history.map(h => ({ role: h.role, parts: [{ text: h.text }] })) : [];
 
     // 2. THE SILENT RETRY LOOP
-    // The server will try the keys one by one until it finds one that isn't rate-limited.
     for (let i = 0; i < keyArray.length; i++) {
         const currentKey = keyArray[i];
 
         try {
             const genAI = new GoogleGenerativeAI(currentKey);
-            
-            // Using the lowest, fastest alive model to preserve quota
-            const model = genAI.getGenerativeModel({ 
-                model: "gemini-2.5-flash",
+
+            // gemini-2.0-flash-lite: free tier, generous RPM, perfect for this use case
+            const model = genAI.getGenerativeModel({
+                model: "gemini-2.0-flash-lite",
                 systemInstruction: `
                     You are 'The Mystic Node', an Akinator-style mind-reading bot. You must figure out what the user is thinking of.
                     CRITICAL RULES:
@@ -50,44 +49,51 @@ module.exports = async function handler(req, res) {
 
             const jsonMatch = responseText.match(/\{[\s\S]*\}/);
             if (!jsonMatch) throw new Error("Format Scrambled");
-            
+
             const cleanJSON = jsonMatch[0].trim();
-            
+
             // Success! Send data to frontend and EXIT the loop.
             return res.status(200).json(JSON.parse(cleanJSON));
 
         } catch (error) {
-            // If a friend's key hits a Rate Limit, silently switch to the next friend's key.
-            if (error.status === 429 || error.message.includes("429") || error.message.includes("quota")) {
-                console.log(`Key ${i+1} hit rate limit. Switching seamlessly...`);
-                continue; 
+            const msg = (error.message || "").toLowerCase();
+            const status = error.status || error.code;
+
+            console.log(`Key ${i + 1}/${keyArray.length} failed — status: ${status}, message: ${error.message}`);
+
+            // Rate limited — try the next key
+            if (status === 429 || msg.includes("429") || msg.includes("quota") || msg.includes("rate")) {
+                continue;
             }
 
-            // If a friend's key was banned/expired, silently skip it.
-            if (error.message.includes("API_KEY_INVALID") || error.message.includes("expired")) {
-                 console.log(`Key ${i+1} is dead. Skipping...`);
-                 continue;
+            // Dead / invalid key — skip it
+            if (msg.includes("api_key_invalid") || msg.includes("invalid api key") || msg.includes("expired")) {
+                continue;
             }
 
-            // If the AI just scrambled the JSON, we ask the user to click again
-            if (error.message.includes("Format Scrambled") || error.message.includes("Unexpected token")) {
-                return res.status(200).json({ 
-                    question: "The magic got scrambled. Can you click your answer again?", 
+            // Model not found or not available on this key's tier — skip and try next key
+            if (status === 404 || msg.includes("not found") || msg.includes("not supported") || msg.includes("permission")) {
+                continue;
+            }
+
+            // AI returned scrambled JSON — ask user to retry (no key switch needed)
+            if (error.message.includes("Format Scrambled") || msg.includes("unexpected token")) {
+                return res.status(200).json({
+                    question: "The magic got scrambled. Can you click your answer again?",
                     isGuess: false,
                     isRateLimit: true
                 });
             }
 
-            // Break the loop for hard server crashes
+            // Unknown hard error — stop and report it
             return res.status(200).json({ question: `SERVER ERROR: ${error.message}`, isGuess: false });
         }
     }
 
-    // 3. THE ABSOLUTE BACKUP
-    // If it loops through all 9 friends and every single key is dead or rate-limited:
-    return res.status(200).json({ 
-        question: "All 9 neural pathways are exhausted or disconnected! Please wait a moment and try again.", 
-        isGuess: false, 
-        isRateLimit: true 
+    // 3. All keys exhausted
+    return res.status(200).json({
+        question: `All ${keyArray.length} neural pathways are exhausted or disconnected! Please wait a moment and try again.`,
+        isGuess: false,
+        isRateLimit: true
     });
 };
