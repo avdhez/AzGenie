@@ -21,7 +21,7 @@ module.exports = async function handler(req, res) {
             const genAI = new GoogleGenerativeAI(currentKey);
 
             const model = genAI.getGenerativeModel({
-                model: "gemini-1.5-flash",
+                model: "gemini-2.0-flash-lite",
                 systemInstruction: `
                     You are 'The Mystic Node', an Akinator-style mind-reading bot. You must figure out what the user is thinking of.
                     CRITICAL RULES:
