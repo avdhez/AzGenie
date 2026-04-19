@@ -1,14 +1,14 @@
 const Groq = require("groq-sdk");
 
 const FIRST_QUESTION_HINTS = [
-    "Start by asking about whether it is a living thing.",
-    "Start by asking about whether it is a real or fictional thing.",
-    "Start by asking about whether it can be physically touched.",
-    "Start by asking about whether it is something famous worldwide.",
-    "Start by asking about whether it is a person.",
-    "Start by asking about whether it exists in the real world.",
-    "Start by asking about whether it is bigger than a car.",
-    "Start by asking about whether a child would know what it is.",
+    "Start by asking whether it is a living thing.",
+    "Start by asking whether it is a real or fictional thing.",
+    "Start by asking whether it can be physically touched.",
+    "Start by asking whether it is a person.",
+    "Start by asking whether it is something famous worldwide.",
+    "Start by asking whether it is bigger than a car.",
+    "Start by asking whether a child would recognise it.",
+    "Start by asking whether it is found indoors.",
 ];
 
 module.exports = async function handler(req, res) {
@@ -26,26 +26,43 @@ module.exports = async function handler(req, res) {
 
     const isFirstMove = !history || history.length === 0;
 
+    // Count how many questions have been asked so far (each round = 2 history entries: user + model)
+    const questionCount = history ? Math.floor(history.length / 2) : 0;
+
     const safeHistory = history ? history.map(h => ({
         role: h.role === "model" ? "assistant" : "user",
         content: h.text
     })) : [];
 
-    const systemPrompt = `You are 'The Mystic Node', an Akinator-style mind-reading bot. Your goal is to guess what the user is thinking of by asking yes/no questions one at a time.
+    // Inject urgency based on how many questions have been asked
+    let strategyNote = "";
+    if (questionCount >= 15) {
+        strategyNote = `\n\nCRITICAL: You have asked ${questionCount} questions already. You MUST make your best guess RIGHT NOW. Set isGuess to true. Do not ask another question.`;
+    } else if (questionCount >= 10) {
+        strategyNote = `\n\nWARNING: You have asked ${questionCount} questions. You should be very close to a confident guess. If you have a strong hypothesis, commit to it now by setting isGuess to true.`;
+    } else if (questionCount >= 6) {
+        strategyNote = `\n\nNOTE: You have asked ${questionCount} questions. Start narrowing down to specific candidates. Stop asking broad category questions — focus on your hypothesis.`;
+    }
 
-You MUST always respond with ONLY a raw JSON object in this exact format with no extra text before or after:
-{"reasoning":"your thinking here","question":"your yes/no question here","isGuess":false,"finalAnswer":""}
+    const systemPrompt = `You are 'The Mystic Node', an Akinator-style mind-reading bot. Guess what the user is thinking of by asking smart yes/no questions.
+
+OUTPUT FORMAT — respond with ONLY a raw JSON object, nothing else before or after:
+{"reasoning":"your analysis here","question":"your single yes/no question","isGuess":false,"finalAnswer":""}
 
 STRATEGY:
-- Use "reasoning" to analyze clues gathered so far before forming your next question.
-- Start broad: is it real or fictional? A person, place, object, or concept? Living or non-living?
-- After 5-7 answers, form a strong hypothesis. After 10+ answers, commit to a guess.
-- When guessing set isGuess to true and put your answer in finalAnswer. Set question to "Is it [finalAnswer]?"
+- In "reasoning", summarize what you know so far and what your current best hypothesis is.
+- Questions 1–4: Broad category (person/place/object/concept, real/fictional, living/non-living, famous/obscure).
+- Questions 5–8: Narrow the category (field, gender, era, size, function, location, etc).
+- Questions 9–12: Zero in on specific candidates based on your hypothesis.
+- Question 13+: Commit to your best guess. Set isGuess to true.
 
-STRICT RULES:
-- One question at a time, answerable only with Yes / No / Maybe / Don't Know.
-- Never ask "Is it A or B?" — ask each separately.
-- Output ONLY the JSON object. No markdown. No code fences. No explanation outside the JSON.`;
+RULES:
+- Each question must be answerable with Yes / No / Maybe / Don't Know only.
+- NEVER ask "Is it X or Y?" — ask about one thing at a time.
+- NEVER ask about random unrelated objects (doorstop, shoe rack, mat, rug, etc.) without evidence pointing there.
+- NEVER repeat a question already asked in the history.
+- When isGuess is true, set question to "Is it [finalAnswer]?" and put your best guess in finalAnswer.
+- Output ONLY the JSON. No markdown. No code fences. No text outside the JSON.${strategyNote}`;
 
     let lastError = null;
 
@@ -61,12 +78,11 @@ STRICT RULES:
                 messages = [
                     { role: "system", content: systemPrompt },
                     ...safeHistory,
-                    { role: "user", content: `The answer was "${correctThing}". Note it for the future. Reply with ONLY this JSON: {"reasoning":"Noted.","question":"Understood! Let's play again!","isGuess":false,"finalAnswer":""}` }
+                    { role: "user", content: `The answer was "${correctThing}". Note it. Reply with ONLY this JSON: {"reasoning":"Noted.","question":"Got it! Let's play again!","isGuess":false,"finalAnswer":""}` }
                 ];
             } else {
-                // Inject a random hint on the very first move to vary the opening question
                 const firstMoveNote = isFirstMove
-                    ? ` Hint for your first question only: ${FIRST_QUESTION_HINTS[Math.floor(Math.random() * FIRST_QUESTION_HINTS.length)]}`
+                    ? ` Hint: ${FIRST_QUESTION_HINTS[Math.floor(Math.random() * FIRST_QUESTION_HINTS.length)]}`
                     : "";
 
                 messages = [
@@ -79,7 +95,7 @@ STRICT RULES:
             const completion = await groq.chat.completions.create({
                 model: "llama-3.3-70b-versatile",
                 messages,
-                temperature: 0.8,
+                temperature: 0.7,
                 max_tokens: 600,
             });
 
@@ -89,7 +105,6 @@ STRICT RULES:
                 return res.status(200).json({ reset: true });
             }
 
-            // Strip markdown fences if present
             const cleaned = responseText
                 .replace(/```json/gi, '')
                 .replace(/```/g, '')
@@ -97,7 +112,7 @@ STRICT RULES:
 
             const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
-                console.error("No JSON found in response:", responseText.slice(0, 200));
+                console.error("No JSON in response:", responseText.slice(0, 200));
                 throw new Error("Format Scrambled");
             }
 
