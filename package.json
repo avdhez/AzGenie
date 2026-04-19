@@ -2,6 +2,6 @@
   "name": "mystic-node",
   "version": "1.0.0",
   "dependencies": {
-    "@google/generative-ai": "^0.21.0"
+    "groq-sdk": "^0.9.0"
   }
 }
