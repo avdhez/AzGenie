@@ -1,962 +1,1062 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avdhez the Jinn — Mind Reader</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --void: #03010a;
-            --deep: #0a0318;
-            --gold: #c9a84c;
-            --gold-bright: #f0c96b;
-            --gold-dim: #7a6030;
-            --teal: #00e5cc;
-            --teal-dim: #007a6d;
-            --purple: #7c3aed;
-            --purple-bright: #a855f7;
-            --smoke: rgba(124, 58, 237, 0.12);
-            --card: rgba(8, 3, 22, 0.85);
-            --glow-gold: 0 0 20px rgba(201,168,76,0.6), 0 0 60px rgba(201,168,76,0.2);
-            --glow-teal: 0 0 20px rgba(0,229,204,0.5), 0 0 60px rgba(0,229,204,0.15);
-            --glow-purple: 0 0 30px rgba(124,58,237,0.5);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avdhez the Jinn</title>
+<link href="https://fonts.googleapis.com/css2?family=Ruge+Boogie&family=Philosopher:ital,wght@0,400;0,700;1,400&family=Josefin+Sans:wght@300;400;600&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --night: #080414;
+  --deep: #0f062a;
+  --purple: #3b1278;
+  --gold: #f5a623;
+  --gold-bright: #ffd166;
+  --gold-dim: #8a6020;
+  --amber: #fb923c;
+  --teal: #06d6a0;
+  --star: #fde68a;
+  --card-bg: rgba(12, 4, 35, 0.88);
+  --text: #f0e0c0;
+  --text-dim: #9d8060;
+}
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin:0; padding:0; box-sizing:border-box; }
 
-        body {
-            font-family: 'Rajdhani', sans-serif;
-            background: var(--void);
-            color: #e8d5b0;
-            min-height: 100vh;
-            overflow-x: hidden;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
 
-        /* ── MATRIX RAIN CANVAS ── */
-        #matrix-canvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 0;
-            opacity: 0.18;
-        }
+body {
+  font-family: 'Josefin Sans', sans-serif;
+  background: var(--night);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 16px 40px;
+  position: relative;
+}
 
-        /* ── NEBULA BG ── */
-        .nebula {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(80px);
-            z-index: 0;
-            pointer-events: none;
-        }
-        .nebula-1 { width: 600px; height: 600px; background: radial-gradient(circle, rgba(124,58,237,0.35) 0%, transparent 70%); top: -150px; left: -150px; animation: drift1 18s ease-in-out infinite; }
-        .nebula-2 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(0,229,204,0.2) 0%, transparent 70%); bottom: -100px; right: -100px; animation: drift2 22s ease-in-out infinite; }
-        .nebula-3 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 70%); top: 40%; left: 50%; transform: translate(-50%,-50%); animation: drift3 15s ease-in-out infinite; }
+/* ── SKY ── */
+.sky {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, #1a0850 0%, #0a0320 40%, #080414 100%);
+  z-index: 0;
+}
 
-        @keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(60px,40px)} }
-        @keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-50px,-30px)} }
-        @keyframes drift3 { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.3)} }
+/* ── STARS ── */
+#star-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
 
-        /* ── FLOATING RUNES ── */
-        .rune {
-            position: fixed;
-            font-size: 20px;
-            opacity: 0;
-            color: var(--gold);
-            z-index: 0;
-            pointer-events: none;
-            animation: floatRune linear infinite;
-        }
+/* ── DUNES SILHOUETTE ── */
+.dunes {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 120px;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 100% at 20% 100%, #1a0850 0%, transparent 70%),
+    radial-gradient(ellipse 50% 90% at 70% 100%, #150640 0%, transparent 70%),
+    radial-gradient(ellipse 40% 80% at 50% 100%, #0f0430 0%, transparent 80%);
+}
 
-        @keyframes floatRune {
-            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-            10% { opacity: 0.4; }
-            90% { opacity: 0.2; }
-            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
-        }
+/* Palace silhouette (SVG inline) */
+.palace {
+  position: fixed;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  opacity: 0.18;
+  pointer-events: none;
+  width: 500px;
+  max-width: 100vw;
+}
 
-        /* ── MAIN WRAPPER ── */
-        .wrapper {
-            position: relative;
-            z-index: 10;
-            width: 100%;
-            max-width: 480px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0;
-        }
+/* ── MAGIC PARTICLES ── */
+.spark {
+  position: fixed;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 3;
+  animation: sparkFloat linear infinite;
+}
+@keyframes sparkFloat {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.6; }
+  100% { transform: translateY(-100vh) scale(0); opacity: 0; }
+}
 
-        /* ── HEADER TITLE ── */
-        .header {
-            text-align: center;
-            margin-bottom: -10px;
-            z-index: 2;
-        }
+/* ── MOON ── */
+.moon {
+  position: fixed;
+  top: 40px; right: 60px;
+  width: 60px; height: 60px;
+  background: radial-gradient(circle at 35% 40%, #fef3c7, #f59e0b);
+  border-radius: 50%;
+  box-shadow: 0 0 30px rgba(245,166,35,0.5), 0 0 60px rgba(245,166,35,0.2);
+  z-index: 3;
+  animation: moonGlow 6s ease-in-out infinite;
+}
+.moon::after {
+  content: '';
+  position: absolute;
+  top: 6px; left: 14px;
+  width: 42px; height: 42px;
+  background: #0f062a;
+  border-radius: 50%;
+}
+@keyframes moonGlow {
+  0%,100% { box-shadow: 0 0 30px rgba(245,166,35,0.5), 0 0 60px rgba(245,166,35,0.2); }
+  50%      { box-shadow: 0 0 50px rgba(245,166,35,0.8), 0 0 100px rgba(245,166,35,0.3); }
+}
 
-        .header-eyebrow {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 11px;
-            letter-spacing: 6px;
-            text-transform: uppercase;
-            color: var(--teal);
-            opacity: 0.8;
-            margin-bottom: 4px;
-        }
+/* ── LAMP ── */
+.lamp-wrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 2px;
+  z-index: 10;
+  cursor: default;
+}
+.lamp-emoji {
+  font-size: 56px;
+  display: block;
+  text-align: center;
+  line-height: 80px;
+  animation: lampRock 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px rgba(245,166,35,0.8)) drop-shadow(0 0 30px rgba(245,166,35,0.3));
+}
+@keyframes lampRock {
+  0%,100% { transform: rotate(-4deg); }
+  50%      { transform: rotate(4deg); }
+}
+.lamp-glow {
+  position: absolute;
+  width: 120px; height: 40px;
+  background: radial-gradient(ellipse, rgba(245,166,35,0.4) 0%, transparent 70%);
+  bottom: -10px; left: 50%;
+  transform: translateX(-50%);
+  filter: blur(8px);
+  animation: glowPulse 4s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%,100% { opacity: 0.5; transform: translateX(-50%) scaleX(1); }
+  50%      { opacity: 1; transform: translateX(-50%) scaleX(1.3); }
+}
 
-        .header-title {
-            font-family: 'Cinzel Decorative', serif;
-            font-size: clamp(22px, 5vw, 30px);
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 40%, #e8b84b 70%, var(--gold-bright) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: none;
-            filter: drop-shadow(0 0 20px rgba(201,168,76,0.5));
-            line-height: 1.1;
-        }
+/* ── JINN CHARACTER ── */
+.jinn-wrap {
+  position: relative;
+  width: 130px; height: 130px;
+  margin: -10px auto 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.jinn-aura {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(96,40,220,0.5) 0%, rgba(59,18,120,0.3) 50%, transparent 80%);
+  animation: auraPulse 3s ease-in-out infinite;
+}
+.jinn-ring {
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  border: 1px solid rgba(245,166,35,0.25);
+  animation: ringRotate 8s linear infinite;
+}
+.jinn-ring::before, .jinn-ring::after {
+  content: '✦';
+  position: absolute;
+  color: var(--gold);
+  font-size: 10px;
+  opacity: 0.7;
+}
+.jinn-ring::before { top: -6px; left: 50%; transform: translateX(-50%); }
+.jinn-ring::after  { bottom: -6px; left: 50%; transform: translateX(-50%); }
+@keyframes ringRotate { to { transform: rotate(360deg); } }
+@keyframes auraPulse {
+  0%,100% { opacity: 0.6; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.1); }
+}
+.jinn-emoji {
+  font-size: 74px;
+  position: relative;
+  z-index: 2;
+  animation: jinnFloat 3.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 16px rgba(245,166,35,0.9));
+  transition: all 0.4s ease;
+}
+@keyframes jinnFloat {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+.jinn-smoke-l, .jinn-smoke-r {
+  position: absolute;
+  bottom: 0;
+  width: 30px; height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(to top, rgba(96,40,220,0.5), transparent);
+  filter: blur(10px);
+  animation: smokeDrift 3s ease-in-out infinite;
+}
+.jinn-smoke-l { left: 20px; animation-delay: 0s; }
+.jinn-smoke-r { right: 20px; animation-delay: 1.5s; }
+@keyframes smokeDrift {
+  0%,100% { transform: scaleX(1) translateY(0); opacity: 0.5; }
+  50%      { transform: scaleX(1.5) translateY(-8px); opacity: 0.9; }
+}
 
-        .header-sub {
-            font-family: 'Cinzel', serif;
-            font-size: 11px;
-            letter-spacing: 4px;
-            color: var(--gold-dim);
-            text-transform: uppercase;
-            margin-top: 4px;
-        }
+/* ── TITLE ── */
+.header { text-align: center; z-index: 10; position: relative; }
+.header-sub {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 6px;
+  color: var(--teal);
+  text-transform: uppercase;
+  opacity: 0.8;
+  margin-bottom: 2px;
+}
+.header-title {
+  font-family: 'Ruge Boogie', cursive;
+  font-size: clamp(36px, 8vw, 52px);
+  color: var(--gold-bright);
+  filter: drop-shadow(0 0 20px rgba(245,166,35,0.7)) drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+  line-height: 1;
+  letter-spacing: 2px;
+}
+.header-tagline {
+  font-family: 'Scheherazade New', serif;
+  font-size: 14px;
+  color: var(--gold-dim);
+  letter-spacing: 2px;
+  margin-top: 2px;
+}
 
-        /* ── JINN CHARACTER ── */
-        .jinn-container {
-            position: relative;
-            width: 160px;
-            height: 160px;
-            margin: 10px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+/* ── CARD ── */
+.game-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--card-bg);
+  border: 1px solid rgba(245,166,35,0.18);
+  border-radius: 24px;
+  padding: 24px 22px 22px;
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(24px);
+  box-shadow:
+    0 0 0 1px rgba(245,166,35,0.06) inset,
+    0 30px 80px rgba(0,0,0,0.8),
+    0 0 40px rgba(59,18,120,0.2);
+  margin-top: 6px;
+}
 
-        .jinn-orb {
-            position: absolute;
-            width: 140px; height: 140px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 35% 35%, rgba(200,150,255,0.3) 0%, rgba(100,30,200,0.4) 50%, rgba(20,5,50,0.8) 100%);
-            border: 1px solid rgba(201,168,76,0.3);
-            box-shadow: 0 0 40px rgba(124,58,237,0.6), 0 0 80px rgba(124,58,237,0.2), inset 0 0 30px rgba(201,168,76,0.1);
-            animation: orbPulse 4s ease-in-out infinite;
-        }
+/* arabian border pattern */
+.card-border-top, .card-border-bot {
+  position: absolute;
+  left: 20px; right: 20px;
+  height: 6px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--gold-dim) 0px, var(--gold-dim) 4px,
+    transparent 4px, transparent 10px
+  );
+  opacity: 0.3;
+}
+.card-border-top { top: 10px; }
+.card-border-bot { bottom: 10px; }
 
-        .jinn-orb::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: 50%;
-            background: conic-gradient(from 0deg, transparent 0%, var(--gold) 15%, transparent 30%, var(--teal) 50%, transparent 65%, var(--purple-bright) 80%, transparent 100%);
-            animation: orbSpin 6s linear infinite;
-            mask: radial-gradient(circle, transparent 66px, black 67px);
-            -webkit-mask: radial-gradient(circle, transparent 66px, black 67px);
-            opacity: 0.7;
-        }
+/* Corner gems */
+.gem {
+  position: absolute;
+  width: 8px; height: 8px;
+  background: var(--gold);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(245,166,35,0.8);
+  opacity: 0.6;
+}
+.gem-tl { top: 6px; left: 6px; }
+.gem-tr { top: 6px; right: 6px; }
+.gem-bl { bottom: 6px; left: 6px; }
+.gem-br { bottom: 6px; right: 6px; }
 
-        @keyframes orbSpin { to { transform: rotate(360deg); } }
-        @keyframes orbPulse {
-            0%,100% { box-shadow: 0 0 40px rgba(124,58,237,0.6), 0 0 80px rgba(124,58,237,0.2), inset 0 0 30px rgba(201,168,76,0.1); }
-            50% { box-shadow: 0 0 60px rgba(124,58,237,0.9), 0 0 120px rgba(124,58,237,0.4), inset 0 0 50px rgba(201,168,76,0.2); }
-        }
+/* Top bar */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.q-badge {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  background: rgba(245,166,35,0.07);
+  border: 1px solid rgba(245,166,35,0.15);
+  border-radius: 20px;
+  padding: 4px 12px;
+  transition: all 0.4s;
+}
+.q-badge.bump { color: var(--gold); border-color: rgba(245,166,35,0.4); }
+.reset-btn {
+  background: transparent;
+  border: 1px solid rgba(245,166,35,0.2);
+  color: var(--text-dim);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.reset-btn:hover { color: var(--gold); border-color: var(--gold); box-shadow: 0 0 12px rgba(245,166,35,0.3); }
 
-        .jinn-emoji {
-            font-size: 72px;
-            position: relative;
-            z-index: 2;
-            animation: jinFloat 3s ease-in-out infinite;
-            filter: drop-shadow(0 0 15px rgba(201,168,76,0.8));
-        }
+/* Question area */
+.question-area {
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 0 8px;
+  position: relative;
+}
 
-        @keyframes jinFloat {
-            0%,100% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-8px) scale(1.05); }
-        }
+/* Thinking dots bar */
+.thinking-bar {
+  display: none;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+.thinking-bar.visible { display: flex; }
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: 0.3;
+  animation: dotPulse 1.4s ease-in-out infinite;
+}
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotPulse {
+  0%,80%,100% { opacity: 0.2; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1.2); }
+}
 
-        .jinn-smoke {
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 40px;
-            background: radial-gradient(ellipse, rgba(124,58,237,0.4) 0%, transparent 70%);
-            filter: blur(10px);
-            animation: smokeWave 3s ease-in-out infinite;
-        }
+.thinking-text {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  display: none;
+}
+.thinking-text.visible { display: block; }
 
-        @keyframes smokeWave {
-            0%,100% { transform: translateX(-50%) scaleX(1); opacity: 0.5; }
-            50% { transform: translateX(-50%) scaleX(1.4); opacity: 0.8; }
-        }
+#question {
+  font-family: 'Philosopher', serif;
+  font-size: clamp(14px, 3.8vw, 18px);
+  font-weight: 400;
+  color: #f5e6c8;
+  line-height: 1.65;
+  transition: opacity 0.3s ease;
+}
+#question.fade { opacity: 0; }
 
-        .jinn-name {
-            font-family: 'Cinzel', serif;
-            font-size: 12px;
-            letter-spacing: 5px;
-            text-transform: uppercase;
-            color: var(--gold);
-            text-align: center;
-            margin-top: -5px;
-            filter: drop-shadow(0 0 6px rgba(201,168,76,0.5));
-        }
+/* Retry button (shown when stuck) */
+.retry-btn {
+  display: none;
+  background: rgba(245,166,35,0.1);
+  border: 1px solid rgba(245,166,35,0.3);
+  color: var(--gold);
+  border-radius: 20px;
+  padding: 6px 18px;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s;
+  animation: fadeIn 0.4s ease;
+}
+.retry-btn:hover { background: rgba(245,166,35,0.2); box-shadow: 0 0 14px rgba(245,166,35,0.3); }
+.retry-btn.visible { display: block; }
 
-        /* ── GAME CARD ── */
-        .game-card {
-            width: 100%;
-            background: var(--card);
-            border: 1px solid rgba(201,168,76,0.2);
-            border-radius: 20px;
-            padding: 28px 24px 24px;
-            position: relative;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 0 60px rgba(0,0,0,0.8), 0 0 30px rgba(124,58,237,0.1), inset 0 1px 0 rgba(201,168,76,0.1);
-            margin-top: 10px;
-        }
+/* Divider */
+.ornament {
+  text-align: center;
+  color: var(--gold-dim);
+  font-size: 13px;
+  letter-spacing: 6px;
+  margin-bottom: 18px;
+  opacity: 0.5;
+}
 
-        .game-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 20px;
-            background: linear-gradient(135deg, rgba(201,168,76,0.05) 0%, transparent 50%, rgba(0,229,204,0.03) 100%);
-            pointer-events: none;
-        }
+/* Answer buttons */
+#controls {
+  display: none;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.btn {
+  padding: 13px 8px;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 12px;
+  border: 1px solid;
+  cursor: pointer;
+  background: transparent;
+  transition: all 0.22s ease;
+  position: relative;
+  overflow: hidden;
+}
+.btn:disabled { opacity: 0.25; cursor: not-allowed; }
+.btn:not(:disabled):active { transform: scale(0.95); }
 
-        /* Corner decorations */
-        .corner {
-            position: absolute;
-            width: 16px; height: 16px;
-            border-color: var(--gold-dim);
-            border-style: solid;
-            opacity: 0.6;
-        }
-        .corner-tl { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
-        .corner-tr { top: 8px; right: 8px; border-width: 1px 1px 0 0; }
-        .corner-bl { bottom: 8px; left: 8px; border-width: 0 0 1px 1px; }
-        .corner-br { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+/* Shimmer on hover */
+.btn::after {
+  content: '';
+  position: absolute;
+  top: -50%; left: -60%;
+  width: 40%; height: 200%;
+  background: rgba(255,255,255,0.08);
+  transform: skewX(-20deg);
+  transition: left 0.4s ease;
+}
+.btn:hover:not(:disabled)::after { left: 120%; }
 
-        /* Top bar */
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+.btn-yes  { color: #4ade80; border-color: rgba(74,222,128,0.3); }
+.btn-yes:hover:not(:disabled)  { background: rgba(74,222,128,0.1);  border-color: #4ade80;  box-shadow: 0 0 18px rgba(74,222,128,0.25); }
+.btn-no   { color: #f87171; border-color: rgba(248,113,113,0.3); }
+.btn-no:hover:not(:disabled)   { background: rgba(248,113,113,0.1); border-color: #f87171;  box-shadow: 0 0 18px rgba(248,113,113,0.25); }
+.btn-maybe{ color: var(--gold-bright); border-color: rgba(253,209,102,0.3); }
+.btn-maybe:hover:not(:disabled){ background: rgba(253,209,102,0.1); border-color: var(--gold-bright); box-shadow: 0 0 18px rgba(253,209,102,0.25); }
+.btn-dk   { color: #c084fc; border-color: rgba(192,132,252,0.3); }
+.btn-dk:hover:not(:disabled)   { background: rgba(192,132,252,0.1); border-color: #c084fc; box-shadow: 0 0 18px rgba(192,132,252,0.25); }
 
-        .q-counter {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 11px;
-            letter-spacing: 3px;
-            color: var(--teal-dim);
-            text-transform: uppercase;
-        }
+/* Result buttons */
+#result-controls { display: none; flex-direction: column; gap: 8px; }
+.btn-correct {
+  padding: 14px;
+  font-family: 'Ruge Boogie', cursive;
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: var(--night);
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-bright) 50%, var(--amber) 100%);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 20px rgba(245,166,35,0.4);
+}
+.btn-correct:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(245,166,35,0.6); }
 
-        .q-counter span {
-            color: var(--teal);
-            font-weight: 600;
-        }
+.btn-wrong {
+  padding: 11px;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #888;
+  background: transparent;
+  border: 1px solid #333;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.btn-wrong:hover { color: #f87171; border-color: rgba(248,113,113,0.4); }
 
-        .reset-btn {
-            background: transparent;
-            color: var(--gold-dim);
-            border: 1px solid rgba(201,168,76,0.2);
-            border-radius: 6px;
-            padding: 5px 12px;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 11px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .reset-btn:hover { color: var(--gold); border-color: var(--gold); box-shadow: var(--glow-gold); }
+/* ── WIN MODAL ── */
+#win-overlay {
+  position: fixed; inset: 0;
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4,1,14,0.8);
+  backdrop-filter: blur(10px);
+}
+.win-box {
+  background: linear-gradient(160deg, #0f0628 0%, #1a083c 100%);
+  border: 1px solid rgba(245,166,35,0.4);
+  border-radius: 28px;
+  padding: 44px 36px 36px;
+  text-align: center;
+  max-width: 340px;
+  width: 90%;
+  box-shadow: 0 0 60px rgba(245,166,35,0.2), 0 0 120px rgba(59,18,120,0.3);
+  animation: modalPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes modalPop {
+  from { transform: scale(0.4) rotate(-5deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.win-lamp { font-size: 64px; animation: winLamp 0.6s ease-out; display: block; margin-bottom: 10px; }
+@keyframes winLamp { from { transform: rotate(-30deg) scale(0); } to { transform: rotate(0) scale(1); } }
+.win-title {
+  font-family: 'Ruge Boogie', cursive;
+  font-size: 30px;
+  color: var(--gold-bright);
+  filter: drop-shadow(0 0 12px rgba(245,166,35,0.7));
+  margin-bottom: 4px;
+}
+.win-subtitle {
+  font-family: 'Scheherazade New', serif;
+  font-size: 15px;
+  color: var(--teal);
+  letter-spacing: 1px;
+  margin-bottom: 22px;
+}
+.win-answer {
+  font-family: 'Philosopher', serif;
+  font-size: 22px;
+  font-style: italic;
+  color: #fff;
+  background: rgba(245,166,35,0.1);
+  border: 1px solid rgba(245,166,35,0.25);
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin-bottom: 26px;
+}
+.win-actions { display: flex; flex-direction: column; gap: 10px; }
+.win-again {
+  padding: 14px;
+  font-family: 'Ruge Boogie', cursive;
+  font-size: 17px;
+  color: var(--night);
+  background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 20px rgba(245,166,35,0.35);
+}
+.win-again:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(245,166,35,0.55); }
+.win-wrong-btn {
+  padding: 11px;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #666;
+  background: transparent;
+  border: 1px solid #2a2040;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.win-wrong-btn:hover { color: #f87171; border-color: rgba(248,113,113,0.3); }
 
-        /* Question display */
-        .question-area {
-            min-height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            margin-bottom: 24px;
-            position: relative;
-        }
+/* ── CONFETTI ── */
+#confetti-canvas {
+  position: fixed; inset: 0;
+  z-index: 150;
+  pointer-events: none;
+}
 
-        #question {
-            font-family: 'Cinzel', serif;
-            font-size: clamp(14px, 3.5vw, 17px);
-            font-weight: 600;
-            color: #f0e6cc;
-            line-height: 1.6;
-            letter-spacing: 0.3px;
-        }
+/* Rate limit notice */
+.rate-notice {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--amber);
+  text-align: center;
+  margin-top: 12px;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.rate-notice.visible { opacity: 1; }
 
-        #question.thinking {
-            color: var(--gold-dim);
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 13px;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-        }
+@keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
 
-        /* Scanning line effect when thinking */
-        .scan-line {
-            position: absolute;
-            left: 0; right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--teal), transparent);
-            opacity: 0;
-            animation: none;
-        }
-
-        .scan-line.active {
-            opacity: 1;
-            animation: scan 1.5s ease-in-out infinite;
-        }
-
-        @keyframes scan {
-            0% { top: 0%; opacity: 0; }
-            20% { opacity: 0.8; }
-            80% { opacity: 0.8; }
-            100% { top: 100%; opacity: 0; }
-        }
-
-        /* Divider */
-        .divider {
-            width: 100%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(201,168,76,0.3), transparent);
-            margin-bottom: 20px;
-        }
-
-        /* Answer buttons */
-        #controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            display: none;
-        }
-
-        .btn {
-            padding: 12px 8px;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            border: 1px solid;
-            border-radius: 10px;
-            cursor: pointer;
-            background: transparent;
-            transition: all 0.25s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            transition: opacity 0.25s;
-        }
-
-        .btn:hover::before { opacity: 1; }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .btn:not(:disabled):active { transform: scale(0.96); }
-
-        .btn-yes {
-            color: #4ade80;
-            border-color: rgba(74,222,128,0.4);
-        }
-        .btn-yes::before { background: rgba(74,222,128,0.08); }
-        .btn-yes:hover:not(:disabled) {
-            background: rgba(74,222,128,0.12);
-            border-color: #4ade80;
-            box-shadow: 0 0 20px rgba(74,222,128,0.3), inset 0 0 20px rgba(74,222,128,0.05);
-        }
-
-        .btn-no {
-            color: #f87171;
-            border-color: rgba(248,113,113,0.4);
-        }
-        .btn-no::before { background: rgba(248,113,113,0.08); }
-        .btn-no:hover:not(:disabled) {
-            background: rgba(248,113,113,0.12);
-            border-color: #f87171;
-            box-shadow: 0 0 20px rgba(248,113,113,0.3), inset 0 0 20px rgba(248,113,113,0.05);
-        }
-
-        .btn-maybe {
-            color: var(--gold-bright);
-            border-color: rgba(240,201,107,0.4);
-        }
-        .btn-maybe::before { background: rgba(240,201,107,0.08); }
-        .btn-maybe:hover:not(:disabled) {
-            background: rgba(240,201,107,0.12);
-            border-color: var(--gold-bright);
-            box-shadow: var(--glow-gold);
-        }
-
-        .btn-dk {
-            color: var(--purple-bright);
-            border-color: rgba(168,85,247,0.4);
-        }
-        .btn-dk::before { background: rgba(168,85,247,0.08); }
-        .btn-dk:hover:not(:disabled) {
-            background: rgba(168,85,247,0.12);
-            border-color: var(--purple-bright);
-            box-shadow: 0 0 20px rgba(168,85,247,0.3);
-        }
-
-        /* Result controls */
-        #result-controls {
-            display: none;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .btn-won {
-            padding: 14px;
-            font-family: 'Cinzel', serif;
-            font-size: 12px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: var(--gold-bright);
-            border: 1px solid var(--gold);
-            border-radius: 10px;
-            cursor: pointer;
-            background: rgba(201,168,76,0.08);
-            transition: all 0.3s;
-        }
-        .btn-won:hover { background: rgba(201,168,76,0.15); box-shadow: var(--glow-gold); }
-
-        .btn-lost {
-            padding: 12px;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 12px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: #f87171;
-            border: 1px solid rgba(248,113,113,0.3);
-            border-radius: 10px;
-            cursor: pointer;
-            background: transparent;
-            transition: all 0.3s;
-        }
-        .btn-lost:hover { background: rgba(248,113,113,0.08); border-color: #f87171; }
-
-        /* ── CONFETTI CANVAS ── */
-        #confetti-canvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 100;
-            pointer-events: none;
-        }
-
-        /* ── WIN OVERLAY ── */
-        #win-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 90;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            background: rgba(3,1,10,0.75);
-            backdrop-filter: blur(6px);
-        }
-
-        .win-box {
-            background: linear-gradient(135deg, rgba(10,3,24,0.95) 0%, rgba(20,8,40,0.95) 100%);
-            border: 1px solid var(--gold);
-            border-radius: 24px;
-            padding: 40px 36px;
-            text-align: center;
-            max-width: 340px;
-            width: 90%;
-            box-shadow: var(--glow-gold), 0 0 100px rgba(201,168,76,0.1);
-            animation: winPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        @keyframes winPop {
-            from { transform: scale(0.5); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .win-icon { font-size: 64px; margin-bottom: 10px; animation: winSpin 1s ease-out; }
-        @keyframes winSpin { from { transform: rotate(-20deg) scale(0); } to { transform: rotate(0deg) scale(1); } }
-
-        .win-title {
-            font-family: 'Cinzel Decorative', serif;
-            font-size: 22px;
-            color: var(--gold-bright);
-            filter: drop-shadow(0 0 10px rgba(201,168,76,0.6));
-            margin-bottom: 8px;
-        }
-
-        .win-subtitle {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 14px;
-            letter-spacing: 2px;
-            color: var(--teal);
-            text-transform: uppercase;
-            margin-bottom: 24px;
-        }
-
-        .win-guess {
-            font-family: 'Cinzel', serif;
-            font-size: 20px;
-            color: #fff;
-            background: rgba(201,168,76,0.1);
-            border: 1px solid rgba(201,168,76,0.3);
-            border-radius: 10px;
-            padding: 12px 20px;
-            margin-bottom: 24px;
-        }
-
-        .win-actions { display: flex; flex-direction: column; gap: 10px; }
-
-        .win-btn {
-            padding: 13px;
-            font-family: 'Cinzel', serif;
-            font-size: 11px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .win-btn-yes {
-            background: rgba(201,168,76,0.15);
-            color: var(--gold-bright);
-            border: 1px solid var(--gold);
-        }
-        .win-btn-yes:hover { background: rgba(201,168,76,0.25); box-shadow: var(--glow-gold); }
-
-        .win-btn-no {
-            background: transparent;
-            color: #888;
-            border: 1px solid #333;
-        }
-        .win-btn-no:hover { color: #f87171; border-color: #f87171; }
-
-        /* Scroll indicator */
-        .scroll-hint {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 10px;
-            letter-spacing: 3px;
-            color: rgba(201,168,76,0.3);
-            text-transform: uppercase;
-            z-index: 5;
-            animation: fadeInOut 4s ease-in-out 3s forwards;
-        }
-        @keyframes fadeInOut { 0%{opacity:0} 20%{opacity:1} 80%{opacity:1} 100%{opacity:0; display:none} }
-
-        /* Responsive */
-        @media (max-height: 700px) {
-            .jinn-container { width: 110px; height: 110px; margin: 5px auto; }
-            .jinn-orb { width: 100px; height: 100px; }
-            .jinn-emoji { font-size: 50px; }
-        }
-    </style>
+@media (max-height: 680px) {
+  .jinn-wrap { width: 90px; height: 90px; }
+  .jinn-emoji { font-size: 52px; }
+  .lamp-emoji { font-size: 40px; line-height: 60px; }
+  .lamp-wrap  { width: 60px; height: 60px; }
+  .header-title { font-size: 32px; }
+}
+</style>
 </head>
 <body>
 
-<!-- Matrix rain -->
-<canvas id="matrix-canvas"></canvas>
+<div class="sky"></div>
+<canvas id="star-canvas"></canvas>
 
-<!-- Nebula backgrounds -->
-<div class="nebula nebula-1"></div>
-<div class="nebula nebula-2"></div>
-<div class="nebula nebula-3"></div>
+<div class="moon"></div>
+<div class="dunes"></div>
 
-<!-- Confetti & Win -->
+<!-- Palace SVG -->
+<svg class="palace" viewBox="0 0 500 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="250" cy="200" rx="300" ry="80" fill="#3b1278" opacity="0.3"/>
+  <rect x="180" y="80" width="140" height="80" fill="#3b1278"/>
+  <ellipse cx="250" cy="80" rx="70" ry="30" fill="#3b1278"/>
+  <rect x="220" y="50" width="60" height="30" fill="#3b1278"/>
+  <ellipse cx="250" cy="50" rx="30" ry="14" fill="#3b1278"/>
+  <rect x="238" y="20" width="24" height="30" fill="#3b1278"/>
+  <polygon points="250,0 238,20 262,20" fill="#3b1278"/>
+  <rect x="100" y="100" width="60" height="60" fill="#3b1278"/>
+  <ellipse cx="130" cy="100" rx="30" ry="14" fill="#3b1278"/>
+  <rect x="330" y="100" width="60" height="60" fill="#3b1278"/>
+  <ellipse cx="360" cy="100" rx="30" ry="14" fill="#3b1278"/>
+  <rect x="60" y="120" width="30" height="40" fill="#3b1278"/>
+  <rect x="410" y="120" width="30" height="40" fill="#3b1278"/>
+</svg>
+
 <canvas id="confetti-canvas"></canvas>
+
+<!-- WIN MODAL -->
 <div id="win-overlay">
-    <div class="win-box">
-        <div class="win-icon">🔮</div>
-        <div class="win-title">I Knew It!</div>
-        <div class="win-subtitle">The Jinn sees all</div>
-        <div class="win-guess" id="win-guess-text"></div>
-        <div class="win-actions">
-            <button class="win-btn win-btn-yes" onclick="winPlayAgain()">✦ Play Again</button>
-            <button class="win-btn win-btn-no" onclick="winWrong()">That's Wrong</button>
-        </div>
+  <div class="win-box">
+    <span class="win-lamp">🪔</span>
+    <div class="win-title">Your wish is granted!</div>
+    <div class="win-subtitle">Avdhez the Jinn has spoken</div>
+    <div class="win-answer" id="win-answer-text"></div>
+    <div class="win-actions">
+      <button class="win-again" onclick="winAgain()">✨ Play Again</button>
+      <button class="win-wrong-btn" onclick="winWrong()">That's not right</button>
     </div>
+  </div>
 </div>
 
-<!-- Main UI -->
-<div class="wrapper">
-    <div class="header">
-        <div class="header-eyebrow">✦ the mind reader ✦</div>
-        <div class="header-title">Avdhez</div>
-        <div class="header-sub">The Ancient Jinn</div>
+<!-- MAIN UI -->
+<div style="position:relative;z-index:10;width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;">
+
+  <div class="lamp-wrap">
+    <span class="lamp-emoji">🪔</span>
+    <div class="lamp-glow"></div>
+  </div>
+
+  <div class="jinn-wrap">
+    <div class="jinn-aura"></div>
+    <div class="jinn-ring"></div>
+    <span class="jinn-emoji" id="jinn-emoji">🧞</span>
+    <div class="jinn-smoke-l"></div>
+    <div class="jinn-smoke-r"></div>
+  </div>
+
+  <div class="header">
+    <div class="header-sub">✦ think of anything ✦</div>
+    <div class="header-title">Avdhez</div>
+    <div class="header-tagline">Avdhez — The Mind-Reading Jinn</div>
+  </div>
+
+  <div class="game-card" style="width:100%;">
+    <div class="card-border-top"></div>
+    <div class="card-border-bot"></div>
+    <div class="gem gem-tl"></div>
+    <div class="gem gem-tr"></div>
+    <div class="gem gem-bl"></div>
+    <div class="gem gem-br"></div>
+
+    <div class="top-bar">
+      <div class="q-badge" id="q-badge">Question ✦ 0</div>
+      <button class="reset-btn" onclick="restartGame()">↻ New Game</button>
     </div>
 
-    <div class="jinn-container">
-        <div class="jinn-orb"></div>
-        <div class="jinn-emoji" id="jinn-emoji">🧞</div>
-        <div class="jinn-smoke"></div>
+    <div class="question-area">
+      <div class="thinking-bar" id="thinking-bar">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <div class="thinking-text" id="thinking-text">Consulting the void</div>
+      <div id="question"></div>
+      <button class="retry-btn" id="retry-btn" onclick="retryLast()">↺ Try Again</button>
     </div>
-    <div class="jinn-name">▸ Avdhez ◂</div>
 
-    <div class="game-card">
-        <div class="corner corner-tl"></div>
-        <div class="corner corner-tr"></div>
-        <div class="corner corner-bl"></div>
-        <div class="corner corner-br"></div>
+    <div class="ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
 
-        <div class="top-bar">
-            <div class="q-counter">Question <span id="q-num">0</span></div>
-            <button class="reset-btn" onclick="restartGame()">↻ New Game</button>
-        </div>
-
-        <div class="question-area">
-            <div class="scan-line" id="scan-line"></div>
-            <div id="question" class="thinking">Awakening...</div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div id="controls">
-            <button class="btn btn-yes" onclick="sendMove('Yes')">✓ Yes</button>
-            <button class="btn btn-no" onclick="sendMove('No')">✗ No</button>
-            <button class="btn btn-maybe" onclick="sendMove('Maybe')">◈ Maybe</button>
-            <button class="btn btn-dk" onclick="sendMove('I do not know')">? Don't Know</button>
-        </div>
-
-        <div id="result-controls">
-            <button class="btn-won" onclick="showWinOverlay()">✦ Yes, You Got It!</button>
-            <button class="btn-lost" onclick="learn()">✗ You're Wrong</button>
-        </div>
+    <div id="controls">
+      <button class="btn btn-yes"   onclick="sendMove('Yes')">✓ &nbsp;Yes</button>
+      <button class="btn btn-no"    onclick="sendMove('No')">✗ &nbsp;No</button>
+      <button class="btn btn-maybe" onclick="sendMove('Maybe')">◈ &nbsp;Maybe</button>
+      <button class="btn btn-dk"    onclick="sendMove('I do not know')">? &nbsp;Don't Know</button>
     </div>
+
+    <div id="result-controls">
+      <button class="btn-correct" onclick="showWin()">✨ Yes, that's it!</button>
+      <button class="btn-wrong"   onclick="learn()">✗ &nbsp;You're wrong</button>
+    </div>
+
+    <div class="rate-notice" id="rate-notice">The Jinn is resting — please wait a moment</div>
+  </div>
 </div>
-
-<div class="scroll-hint">Think of anything · The Jinn will find it</div>
 
 <script>
-// ══════════════════════════════════════════════
-//  MATRIX RAIN
-// ══════════════════════════════════════════════
-(function () {
-    const canvas = document.getElementById('matrix-canvas');
-    const ctx = canvas.getContext('2d');
-    const CHARS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ01ابتثجحخدذرزسشصضطظعغفقكلمنهوي∆∇∑∏√∞≈≠';
-    let cols, drops;
-
-    function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        cols = Math.floor(canvas.width / 20);
-        drops = Array(cols).fill(1);
-    }
-
-    function draw() {
-        ctx.fillStyle = 'rgba(3,1,10,0.05)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        for (let i = 0; i < drops.length; i++) {
-            const isGold = Math.random() < 0.05;
-            ctx.fillStyle = isGold ? '#c9a84c' : '#7c3aed';
-            ctx.font = `${Math.random() > 0.8 ? 14 : 12}px monospace`;
-            ctx.fillText(CHARS[Math.floor(Math.random() * CHARS.length)], i * 20, drops[i] * 20);
-            if (drops[i] * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
-            drops[i]++;
-        }
-    }
-
-    resize();
-    window.addEventListener('resize', resize);
-    setInterval(draw, 60);
+// ══════════════════════
+//  STARS
+// ══════════════════════
+(function(){
+  const c = document.getElementById('star-canvas');
+  const ctx = c.getContext('2d');
+  let stars = [];
+  function resize(){
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+    stars = Array.from({length:180}, () => ({
+      x: Math.random()*c.width,
+      y: Math.random()*c.height*0.75,
+      r: Math.random()*1.4+0.3,
+      a: Math.random(),
+      s: Math.random()*0.008+0.002,
+      dir: Math.random()>0.5?1:-1
+    }));
+  }
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    stars.forEach(s => {
+      s.a += s.s*s.dir;
+      if(s.a>=1||s.a<=0) s.dir*=-1;
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle = `rgba(253,230,138,${s.a})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  resize();
+  window.addEventListener('resize',resize);
+  draw();
 })();
 
-// ══════════════════════════════════════════════
-//  FLOATING RUNES
-// ══════════════════════════════════════════════
-const RUNES = ['ᚠ','ᚢ','ᚦ','ᚨ','ᚱ','ᚲ','ᚷ','ᚹ','ᚺ','ᚾ','ᛁ','ᛃ','ᛇ','ᛈ','ᛉ','ᛊ','ᛏ','ᛒ','ᛖ','ᛗ','ᛚ','ᛜ','ᛞ','ᛟ','✦','✧','◈','⟁','⟃','∆','∇'];
-function spawnRune() {
-    const el = document.createElement('div');
-    el.className = 'rune';
-    el.textContent = RUNES[Math.floor(Math.random() * RUNES.length)];
-    el.style.left = Math.random() * 100 + 'vw';
-    el.style.animationDuration = (12 + Math.random() * 20) + 's';
-    el.style.animationDelay = (Math.random() * 5) + 's';
-    el.style.fontSize = (12 + Math.random() * 16) + 'px';
-    el.style.opacity = '0';
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 35000);
+// ══════════════════════
+//  MAGIC SPARKS
+// ══════════════════════
+const SPARK_COLORS = ['#f5a623','#ffd166','#06d6a0','#c084fc','#fb923c','#fff'];
+function spawnSpark(){
+  const el = document.createElement('div');
+  el.className = 'spark';
+  el.style.left = (Math.random()*100)+'vw';
+  el.style.bottom = '0';
+  el.style.background = SPARK_COLORS[Math.floor(Math.random()*SPARK_COLORS.length)];
+  el.style.width = el.style.height = (Math.random()*3+1.5)+'px';
+  el.style.animationDuration = (8+Math.random()*14)+'s';
+  el.style.animationDelay = (Math.random()*4)+'s';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 22000);
 }
-setInterval(spawnRune, 1800);
+setInterval(spawnSpark, 1200);
 
-// ══════════════════════════════════════════════
-//  CONFETTI ENGINE
-// ══════════════════════════════════════════════
-const confettiCanvas = document.getElementById('confetti-canvas');
-const cctx = confettiCanvas.getContext('2d');
-confettiCanvas.width = window.innerWidth;
-confettiCanvas.height = window.innerHeight;
-window.addEventListener('resize', () => {
-    confettiCanvas.width = window.innerWidth;
-    confettiCanvas.height = window.innerHeight;
-});
+// ══════════════════════
+//  CONFETTI
+// ══════════════════════
+const cc = document.getElementById('confetti-canvas');
+const cctx = cc.getContext('2d');
+function resizeCC(){ cc.width=window.innerWidth; cc.height=window.innerHeight; }
+resizeCC(); window.addEventListener('resize', resizeCC);
 
-let particles = [];
-const COLORS = ['#c9a84c','#f0c96b','#00e5cc','#a855f7','#f87171','#4ade80','#fff','#e8d5b0'];
+let parts = [];
+const COLS = ['#f5a623','#ffd166','#06d6a0','#c084fc','#fb923c','#4ade80','#f87171','#fff','#fde68a'];
 
-function createParticle(x, y) {
-    return {
-        x, y,
-        vx: (Math.random() - 0.5) * 14,
-        vy: (Math.random() - 0.8) * 16,
-        size: Math.random() * 8 + 3,
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        gravity: 0.4,
-        spin: (Math.random() - 0.5) * 0.3,
-        angle: Math.random() * Math.PI * 2,
-        shape: Math.random() > 0.5 ? 'rect' : 'circle',
-        alpha: 1,
-        decay: 0.012 + Math.random() * 0.008
-    };
+function mkPart(x,y){
+  return {
+    x,y,
+    vx:(Math.random()-0.5)*16,
+    vy:(Math.random()-0.9)*18,
+    size:Math.random()*9+3,
+    color:COLS[Math.floor(Math.random()*COLS.length)],
+    g:.45, spin:(Math.random()-.5)*.35,
+    angle:Math.random()*Math.PI*2,
+    shape:Math.random()>.4?'rect':'circle',
+    alpha:1, decay:.01+Math.random()*.008
+  };
 }
 
-function blast(x, y, count = 120) {
-    for (let i = 0; i < count; i++) particles.push(createParticle(x, y));
+function blast(x,y,n=100){ for(let i=0;i<n;i++) parts.push(mkPart(x,y)); }
+
+function bigBlast(){
+  const cx=window.innerWidth/2, cy=window.innerHeight*.4;
+  blast(cx,cy,120);
+  setTimeout(()=>{ blast(cx*.25,cy*.6,70); blast(cx*1.75,cy*.6,70); },250);
+  setTimeout(()=>{ blast(cx*.15,cy*1.3,50); blast(cx*1.85,cy*1.3,50); },500);
+  setTimeout(()=>{ blast(cx,cy*.15,80); },750);
+  setTimeout(()=>{ blast(cx,cy,100); },1100);
 }
 
-function multiBlast() {
-    const cx = window.innerWidth / 2;
-    const cy = window.innerHeight / 2;
-    blast(cx, cy, 100);
-    setTimeout(() => { blast(cx * 0.3, cy * 0.3, 60); blast(cx * 1.7, cy * 0.3, 60); }, 200);
-    setTimeout(() => { blast(cx * 0.2, cy * 1.2, 50); blast(cx * 1.8, cy * 1.2, 50); }, 400);
-    setTimeout(() => { blast(cx, cy * 0.2, 80); }, 600);
-}
+(function animParts(){
+  requestAnimationFrame(animParts);
+  if(!parts.length){ cctx.clearRect(0,0,cc.width,cc.height); return; }
+  cctx.clearRect(0,0,cc.width,cc.height);
+  parts = parts.filter(p=>p.alpha>0);
+  parts.forEach(p=>{
+    p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.angle+=p.spin; p.alpha-=p.decay;
+    cctx.save();
+    cctx.globalAlpha=Math.max(0,p.alpha);
+    cctx.translate(p.x,p.y); cctx.rotate(p.angle);
+    cctx.fillStyle=p.color;
+    if(p.shape==='rect') cctx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);
+    else { cctx.beginPath(); cctx.arc(0,0,p.size/2,0,Math.PI*2); cctx.fill(); }
+    cctx.restore();
+  });
+})();
 
-function animateConfetti() {
-    requestAnimationFrame(animateConfetti);
-    if (particles.length === 0) {
-        cctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-        return;
-    }
-    cctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-    particles = particles.filter(p => p.alpha > 0);
-    particles.forEach(p => {
-        p.vy += p.gravity;
-        p.x += p.vx;
-        p.y += p.vy;
-        p.angle += p.spin;
-        p.alpha -= p.decay;
-        cctx.save();
-        cctx.globalAlpha = Math.max(0, p.alpha);
-        cctx.translate(p.x, p.y);
-        cctx.rotate(p.angle);
-        cctx.fillStyle = p.color;
-        if (p.shape === 'rect') {
-            cctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
-        } else {
-            cctx.beginPath();
-            cctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
-            cctx.fill();
-        }
-        cctx.restore();
-    });
-}
-animateConfetti();
-
-// ══════════════════════════════════════════════
-//  GAME LOGIC
-// ══════════════════════════════════════════════
-let history = JSON.parse(sessionStorage.getItem('avdhezHistory')) || [];
-let questionCount = parseInt(sessionStorage.getItem('avdhezQCount')) || 0;
+// ══════════════════════
+//  GAME STATE
+// ══════════════════════
+let history = JSON.parse(sessionStorage.getItem('avdhezH')) || [];
+let qCount  = parseInt(sessionStorage.getItem('avdhezQ')) || 0;
 let pendingGuess = '';
+let lastInput = '';
+let isLoading = false;
+let stuckTimer = null;
 
-const questionEl = document.getElementById('question');
+const qEl     = document.getElementById('question');
 const controls = document.getElementById('controls');
-const resultControls = document.getElementById('result-controls');
-const scanLine = document.getElementById('scan-line');
-const qNum = document.getElementById('q-num');
-const jinnEmoji = document.getElementById('jinn-emoji');
+const resCtrls = document.getElementById('result-controls');
+const thinkBar = document.getElementById('thinking-bar');
+const thinkTxt = document.getElementById('thinking-text');
+const qBadge   = document.getElementById('q-badge');
+const jinnEl   = document.getElementById('jinn-emoji');
+const retryBtn = document.getElementById('retry-btn');
+const rateNote = document.getElementById('rate-notice');
 
-function saveState() {
-    sessionStorage.setItem('avdhezHistory', JSON.stringify(history));
-    sessionStorage.setItem('avdhezQCount', questionCount);
+const THINKING_MSGS = [
+  'Peering into your soul',
+  'Consulting the void',
+  'Reading your thoughts',
+  'The Jinn stirs',
+  'Sensing your mind',
+  'Unveiling secrets',
+  'Searching the cosmos',
+];
+
+function saveState(){
+  sessionStorage.setItem('avdhezH', JSON.stringify(history));
+  sessionStorage.setItem('avdhezQ', qCount);
+}
+function clearState(){
+  sessionStorage.removeItem('avdhezH');
+  sessionStorage.removeItem('avdhezQ');
+  history=[]; qCount=0;
 }
 
-function clearState() {
-    sessionStorage.removeItem('avdhezHistory');
-    sessionStorage.removeItem('avdhezQCount');
-    history = [];
-    questionCount = 0;
+function updateBadge(){
+  qBadge.textContent = `Question ✦ ${qCount}`;
+  qBadge.classList.add('bump');
+  setTimeout(()=>qBadge.classList.remove('bump'),400);
 }
 
-function setLoading(isLoading) {
-    const btns = document.querySelectorAll('.btn, .btn-won, .btn-lost');
-    if (isLoading) {
-        questionEl.className = 'thinking';
-        questionEl.textContent = ['Reading your mind...', 'Consulting the void...', 'Sensing your thoughts...', 'The jinn awakens...'][Math.floor(Math.random() * 4)];
-        scanLine.classList.add('active');
-        btns.forEach(b => b.disabled = true);
-        jinnEmoji.textContent = '🔮';
-    } else {
-        questionEl.className = '';
-        scanLine.classList.remove('active');
-        btns.forEach(b => b.disabled = false);
-        controls.style.display = 'grid';
-        jinnEmoji.textContent = '🧞';
+function setLoading(on){
+  isLoading = on;
+  const btns = document.querySelectorAll('.btn,.btn-correct,.btn-wrong');
+  if(on){
+    // Fade question out
+    qEl.classList.add('fade');
+    retryBtn.classList.remove('visible');
+    rateNote.classList.remove('visible');
+    setTimeout(()=>{
+      qEl.textContent='';
+      qEl.classList.remove('fade');
+    },300);
+    thinkBar.classList.add('visible');
+    thinkTxt.textContent = THINKING_MSGS[Math.floor(Math.random()*THINKING_MSGS.length)];
+    thinkTxt.classList.add('visible');
+    jinnEl.textContent='🔮';
+    btns.forEach(b=>b.disabled=true);
+
+    // Show retry button after 18s if still loading
+    stuckTimer = setTimeout(()=>{
+      if(isLoading){
+        thinkTxt.textContent='Something went wrong';
+        retryBtn.classList.add('visible');
+      }
+    }, 18000);
+
+  } else {
+    clearTimeout(stuckTimer);
+    thinkBar.classList.remove('visible');
+    thinkTxt.classList.remove('visible');
+    jinnEl.textContent='🧞';
+    btns.forEach(b=>b.disabled=false);
+    controls.style.display='grid';
+  }
+}
+
+function showQuestion(text){
+  qEl.classList.add('fade');
+  setTimeout(()=>{
+    qEl.textContent = text;
+    qEl.classList.remove('fade');
+  }, 200);
+}
+
+function restartGame(){
+  clearState();
+  resCtrls.style.display='none';
+  controls.style.display='none';
+  document.getElementById('win-overlay').style.display='none';
+  rateNote.classList.remove('visible');
+  retryBtn.classList.remove('visible');
+  updateBadge();
+  sendMove('Start');
+}
+
+function retryLast(){
+  retryBtn.classList.remove('visible');
+  sendMove(lastInput || 'Start');
+}
+
+async function sendMove(input){
+  if(isLoading) return;
+  lastInput = input;
+  setLoading(true);
+  const actual = input==='Start' ? "Let's start!" : input;
+
+  // 20s frontend timeout — shows retry button
+  const controller = new AbortController();
+  const fetchTimeout = setTimeout(()=>controller.abort(), 20000);
+
+  try {
+    const res = await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ history, userInput: actual }),
+      signal: controller.signal
+    });
+    clearTimeout(fetchTimeout);
+
+    let data;
+    try { data = JSON.parse(await res.text()); }
+    catch {
+      showQuestion("A ripple in the ether — click your answer again.");
+      setLoading(false);
+      return;
     }
+
+    if(data.isRateLimit){
+      showQuestion(data.question);
+      setLoading(false);
+      rateNote.classList.add('visible');
+      setTimeout(()=>rateNote.classList.remove('visible'),4000);
+      return;
+    }
+
+    if(data.question?.includes('ERROR')){
+      showQuestion(data.question);
+      setLoading(false);
+      return;
+    }
+
+    if(data.isGuess){
+      pendingGuess = data.finalAnswer;
+      showQuestion(`Is it... ${data.finalAnswer}?`);
+      thinkBar.classList.remove('visible');
+      thinkTxt.classList.remove('visible');
+      jinnEl.textContent='🧞';
+      clearTimeout(stuckTimer);
+      isLoading=false;
+      controls.style.display='none';
+      resCtrls.style.display='flex';
+    } else {
+      qCount++;
+      updateBadge();
+      showQuestion(data.question);
+      setLoading(false);
+    }
+
+    history.push({role:'user',text:actual});
+    history.push({role:'model',text:JSON.stringify(data)});
+    saveState();
+
+  } catch(err){
+    clearTimeout(fetchTimeout);
+    setLoading(false);
+    if(err.name==='AbortError'){
+      showQuestion("The connection was lost to the realm of spirits.");
+      retryBtn.classList.add('visible');
+    } else {
+      showQuestion(`Connection broken: ${err.message}`);
+      retryBtn.classList.add('visible');
+    }
+  }
 }
 
-function updateCounter() {
-    qNum.textContent = questionCount;
+function showWin(){
+  document.getElementById('win-answer-text').textContent = pendingGuess || '…';
+  document.getElementById('win-overlay').style.display='flex';
+  setTimeout(bigBlast, 80);
+  setTimeout(bigBlast, 900);
+  setTimeout(bigBlast, 1800);
 }
 
-function restartGame() {
-    clearState();
-    resultControls.style.display = 'none';
-    controls.style.display = 'none';
-    document.getElementById('win-overlay').style.display = 'none';
-    updateCounter();
+function winAgain(){
+  document.getElementById('win-overlay').style.display='none';
+  restartGame();
+}
+
+function winWrong(){
+  document.getElementById('win-overlay').style.display='none';
+  learn();
+}
+
+async function learn(){
+  const thing = prompt('The Jinn was defeated! What were you thinking of?');
+  if(!thing) return;
+  showQuestion('Absorbing wisdom...');
+  thinkBar.classList.add('visible');
+  thinkTxt.textContent='Learning';
+  thinkTxt.classList.add('visible');
+  resCtrls.style.display='none';
+  jinnEl.textContent='🔮';
+  try {
+    await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({history,isCorrection:true,correctThing:thing})
+    });
+  }catch{}
+  restartGame();
+}
+
+// Resume or fresh start
+window.onload=()=>{
+  updateBadge();
+  if(history.length>0){
+    try{
+      const last=JSON.parse(history[history.length-1].text);
+      if(last.isGuess){
+        pendingGuess=last.finalAnswer;
+        qEl.textContent=`Is it... ${last.finalAnswer}?`;
+        controls.style.display='none';
+        resCtrls.style.display='flex';
+      } else {
+        qEl.textContent=last.question;
+        controls.style.display='grid';
+      }
+    }catch{ restartGame(); }
+  } else {
     sendMove('Start');
-}
-
-async function sendMove(input) {
-    setLoading(true);
-    const actualInput = input === 'Start' ? "Let's start!" : input;
-
-    try {
-        const res = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ history, userInput: actualInput })
-        });
-
-        const rawText = await res.text();
-        let data;
-        try { data = JSON.parse(rawText); }
-        catch {
-            questionEl.textContent = "A ripple in the void — click again.";
-            setLoading(false);
-            return;
-        }
-
-        if (data.isRateLimit) {
-            questionEl.textContent = data.question;
-            questionEl.style.color = '#c9a84c';
-            setTimeout(() => { questionEl.style.color = ''; }, 3000);
-            setLoading(false);
-            return;
-        }
-
-        if (data.question && data.question.includes('ERROR')) {
-            questionEl.textContent = data.question;
-            setLoading(false);
-            return;
-        }
-
-        if (data.isGuess) {
-            pendingGuess = data.finalAnswer;
-            questionEl.textContent = `Is it... ${data.finalAnswer}?`;
-            questionEl.className = '';
-            scanLine.classList.remove('active');
-            jinnEmoji.textContent = '🧞';
-            controls.style.display = 'none';
-            resultControls.style.display = 'flex';
-        } else {
-            questionCount++;
-            updateCounter();
-            questionEl.textContent = data.question;
-            setLoading(false);
-        }
-
-        history.push({ role: 'user', text: actualInput });
-        history.push({ role: 'model', text: JSON.stringify(data) });
-        saveState();
-
-    } catch (err) {
-        questionEl.textContent = `Connection severed: ${err.message}`;
-        setLoading(false);
-    }
-}
-
-function showWinOverlay() {
-    document.getElementById('win-guess-text').textContent = pendingGuess || 'Your thought';
-    const overlay = document.getElementById('win-overlay');
-    overlay.style.display = 'flex';
-    setTimeout(multiBlast, 100);
-    setTimeout(multiBlast, 800);
-    setTimeout(multiBlast, 1600);
-}
-
-function winPlayAgain() {
-    document.getElementById('win-overlay').style.display = 'none';
-    restartGame();
-}
-
-function winWrong() {
-    document.getElementById('win-overlay').style.display = 'none';
-    learn();
-}
-
-async function learn() {
-    const correctThing = prompt('The Jinn was wrong. What were you thinking of?');
-    if (!correctThing) return;
-
-    questionEl.textContent = 'Absorbing knowledge...';
-    questionEl.className = 'thinking';
-    scanLine.classList.add('active');
-    resultControls.style.display = 'none';
-
-    try {
-        await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ history, isCorrection: true, correctThing })
-        });
-    } catch {}
-
-    restartGame();
-}
-
-// Resume or start
-window.onload = () => {
-    updateCounter();
-    if (history.length > 0) {
-        try {
-            const last = history[history.length - 1];
-            const data = JSON.parse(last.text);
-            if (data.isGuess) {
-                pendingGuess = data.finalAnswer;
-                questionEl.textContent = `Is it... ${data.finalAnswer}?`;
-                questionEl.className = '';
-                controls.style.display = 'none';
-                resultControls.style.display = 'flex';
-            } else {
-                questionEl.textContent = data.question;
-                questionEl.className = '';
-                controls.style.display = 'grid';
-            }
-        } catch { restartGame(); }
-    } else {
-        sendMove('Start');
-    }
+  }
 };
 </script>
 </body>
