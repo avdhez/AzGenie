@@ -3,250 +3,961 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Mystic Node</title>
+    <title>Avdhez the Jinn — Mind Reader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0d0d12;
-            --card-bg: #1a1a24;
-            --neon-green: #39ff14;
-            --neon-red: #ff073a;
-            --neon-yellow: #ffeb3b;
-            --neon-purple: #b026ff;
-            --text-color: #e0e0e0;
+            --void: #03010a;
+            --deep: #0a0318;
+            --gold: #c9a84c;
+            --gold-bright: #f0c96b;
+            --gold-dim: #7a6030;
+            --teal: #00e5cc;
+            --teal-dim: #007a6d;
+            --purple: #7c3aed;
+            --purple-bright: #a855f7;
+            --smoke: rgba(124, 58, 237, 0.12);
+            --card: rgba(8, 3, 22, 0.85);
+            --glow-gold: 0 0 20px rgba(201,168,76,0.6), 0 0 60px rgba(201,168,76,0.2);
+            --glow-teal: 0 0 20px rgba(0,229,204,0.5), 0 0 60px rgba(0,229,204,0.15);
+            --glow-purple: 0 0 30px rgba(124,58,237,0.5);
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            margin: 0; 
-            font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
-            background-color: var(--bg-color); 
-            color: var(--text-color);
-            display: flex; 
-            justify-content: center; 
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--void);
+            color: #e8d5b0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            height: 100vh; 
-            overflow: hidden; 
+            justify-content: center;
+        }
+
+        /* ── MATRIX RAIN CANVAS ── */
+        #matrix-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            opacity: 0.18;
+        }
+
+        /* ── NEBULA BG ── */
+        .nebula {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+        }
+        .nebula-1 { width: 600px; height: 600px; background: radial-gradient(circle, rgba(124,58,237,0.35) 0%, transparent 70%); top: -150px; left: -150px; animation: drift1 18s ease-in-out infinite; }
+        .nebula-2 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(0,229,204,0.2) 0%, transparent 70%); bottom: -100px; right: -100px; animation: drift2 22s ease-in-out infinite; }
+        .nebula-3 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 70%); top: 40%; left: 50%; transform: translate(-50%,-50%); animation: drift3 15s ease-in-out infinite; }
+
+        @keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(60px,40px)} }
+        @keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-50px,-30px)} }
+        @keyframes drift3 { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.3)} }
+
+        /* ── FLOATING RUNES ── */
+        .rune {
+            position: fixed;
+            font-size: 20px;
+            opacity: 0;
+            color: var(--gold);
+            z-index: 0;
+            pointer-events: none;
+            animation: floatRune linear infinite;
+        }
+
+        @keyframes floatRune {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.4; }
+            90% { opacity: 0.2; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        /* ── MAIN WRAPPER ── */
+        .wrapper {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 480px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+        }
+
+        /* ── HEADER TITLE ── */
+        .header {
+            text-align: center;
+            margin-bottom: -10px;
+            z-index: 2;
+        }
+
+        .header-eyebrow {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 11px;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: var(--teal);
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+
+        .header-title {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: clamp(22px, 5vw, 30px);
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 40%, #e8b84b 70%, var(--gold-bright) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+            filter: drop-shadow(0 0 20px rgba(201,168,76,0.5));
+            line-height: 1.1;
+        }
+
+        .header-sub {
+            font-family: 'Cinzel', serif;
+            font-size: 11px;
+            letter-spacing: 4px;
+            color: var(--gold-dim);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        /* ── JINN CHARACTER ── */
+        .jinn-container {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin: 10px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .jinn-orb {
+            position: absolute;
+            width: 140px; height: 140px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, rgba(200,150,255,0.3) 0%, rgba(100,30,200,0.4) 50%, rgba(20,5,50,0.8) 100%);
+            border: 1px solid rgba(201,168,76,0.3);
+            box-shadow: 0 0 40px rgba(124,58,237,0.6), 0 0 80px rgba(124,58,237,0.2), inset 0 0 30px rgba(201,168,76,0.1);
+            animation: orbPulse 4s ease-in-out infinite;
+        }
+
+        .jinn-orb::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent 0%, var(--gold) 15%, transparent 30%, var(--teal) 50%, transparent 65%, var(--purple-bright) 80%, transparent 100%);
+            animation: orbSpin 6s linear infinite;
+            mask: radial-gradient(circle, transparent 66px, black 67px);
+            -webkit-mask: radial-gradient(circle, transparent 66px, black 67px);
+            opacity: 0.7;
+        }
+
+        @keyframes orbSpin { to { transform: rotate(360deg); } }
+        @keyframes orbPulse {
+            0%,100% { box-shadow: 0 0 40px rgba(124,58,237,0.6), 0 0 80px rgba(124,58,237,0.2), inset 0 0 30px rgba(201,168,76,0.1); }
+            50% { box-shadow: 0 0 60px rgba(124,58,237,0.9), 0 0 120px rgba(124,58,237,0.4), inset 0 0 50px rgba(201,168,76,0.2); }
+        }
+
+        .jinn-emoji {
+            font-size: 72px;
+            position: relative;
+            z-index: 2;
+            animation: jinFloat 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 15px rgba(201,168,76,0.8));
+        }
+
+        @keyframes jinFloat {
+            0%,100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-8px) scale(1.05); }
+        }
+
+        .jinn-smoke {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 40px;
+            background: radial-gradient(ellipse, rgba(124,58,237,0.4) 0%, transparent 70%);
+            filter: blur(10px);
+            animation: smokeWave 3s ease-in-out infinite;
+        }
+
+        @keyframes smokeWave {
+            0%,100% { transform: translateX(-50%) scaleX(1); opacity: 0.5; }
+            50% { transform: translateX(-50%) scaleX(1.4); opacity: 0.8; }
+        }
+
+        .jinn-name {
+            font-family: 'Cinzel', serif;
+            font-size: 12px;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--gold);
+            text-align: center;
+            margin-top: -5px;
+            filter: drop-shadow(0 0 6px rgba(201,168,76,0.5));
+        }
+
+        /* ── GAME CARD ── */
+        .game-card {
+            width: 100%;
+            background: var(--card);
+            border: 1px solid rgba(201,168,76,0.2);
+            border-radius: 20px;
+            padding: 28px 24px 24px;
+            position: relative;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 60px rgba(0,0,0,0.8), 0 0 30px rgba(124,58,237,0.1), inset 0 1px 0 rgba(201,168,76,0.1);
+            margin-top: 10px;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(201,168,76,0.05) 0%, transparent 50%, rgba(0,229,204,0.03) 100%);
+            pointer-events: none;
+        }
+
+        /* Corner decorations */
+        .corner {
+            position: absolute;
+            width: 16px; height: 16px;
+            border-color: var(--gold-dim);
+            border-style: solid;
+            opacity: 0.6;
+        }
+        .corner-tl { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+        .corner-tr { top: 8px; right: 8px; border-width: 1px 1px 0 0; }
+        .corner-bl { bottom: 8px; left: 8px; border-width: 0 0 1px 1px; }
+        .corner-br { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+
+        /* Top bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .q-counter {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 11px;
+            letter-spacing: 3px;
+            color: var(--teal-dim);
+            text-transform: uppercase;
+        }
+
+        .q-counter span {
+            color: var(--teal);
+            font-weight: 600;
+        }
+
+        .reset-btn {
+            background: transparent;
+            color: var(--gold-dim);
+            border: 1px solid rgba(201,168,76,0.2);
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .reset-btn:hover { color: var(--gold); border-color: var(--gold); box-shadow: var(--glow-gold); }
+
+        /* Question display */
+        .question-area {
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            margin-bottom: 24px;
             position: relative;
         }
 
-        .cartoon {
-            position: absolute; 
-            font-size: 45px;
-            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));
-            animation: float 6s ease-in-out infinite; 
-            z-index: 0;
-        }
-        .wizard { top: 20%; left: 15%; animation-delay: 0s; }
-        .robot { bottom: 20%; right: 15%; animation-delay: 3s; font-size: 50px; }
-
-        @keyframes float {
-            0% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-15px) rotate(5deg); }
-            100% { transform: translateY(0px) rotate(0deg); }
+        #question {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(14px, 3.5vw, 17px);
+            font-weight: 600;
+            color: #f0e6cc;
+            line-height: 1.6;
+            letter-spacing: 0.3px;
         }
 
-        #game-box {
-            background-color: var(--card-bg); 
-            padding: 25px; 
-            border-radius: 16px;
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.8), 0 0 10px rgba(100, 100, 255, 0.1) inset;
-            text-align: center; 
-            max-width: 350px; 
-            width: 85%; 
-            z-index: 10; 
-            border: 1px solid #2a2a35;
+        #question.thinking {
+            color: var(--gold-dim);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 13px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
         }
 
-        .top-bar { display: flex; justify-content: flex-end; margin-bottom: 10px; }
-        .reset-btn {
-            background: transparent; color: #888; border: 1px solid #444; 
-            border-radius: 4px; padding: 5px 10px; font-size: 12px; cursor: pointer; transition: 0.3s;
+        /* Scanning line effect when thinking */
+        .scan-line {
+            position: absolute;
+            left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--teal), transparent);
+            opacity: 0;
+            animation: none;
         }
-        .reset-btn:hover { color: #fff; border-color: #fff; }
 
-        h1 { font-size: 1.1rem; min-height: 60px; display: flex; align-items: center; justify-content: center; margin-top: 0; }
-        #controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .scan-line.active {
+            opacity: 1;
+            animation: scan 1.5s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            20% { opacity: 0.8; }
+            80% { opacity: 0.8; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* Divider */
+        .divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(201,168,76,0.3), transparent);
+            margin-bottom: 20px;
+        }
+
+        /* Answer buttons */
+        #controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            display: none;
+        }
 
         .btn {
-            padding: 10px 15px; font-size: 13px; font-weight: bold; border: none;
-            border-radius: 6px; cursor: pointer; transition: all 0.3s ease;
-            text-transform: uppercase; letter-spacing: 1px; flex: 1 1 40%;
+            padding: 12px 8px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            border: 1px solid;
+            border-radius: 10px;
+            cursor: pointer;
+            background: transparent;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: scale(0.95); }
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
 
-        .yes { background: transparent; color: var(--neon-green); border: 2px solid var(--neon-green); }
-        .yes:hover:not(:disabled) { background: var(--neon-green); color: #000; box-shadow: 0 0 15px var(--neon-green); }
-        .no { background: transparent; color: var(--neon-red); border: 2px solid var(--neon-red); }
-        .no:hover:not(:disabled) { background: var(--neon-red); color: #000; box-shadow: 0 0 15px var(--neon-red); }
-        .maybe { background: transparent; color: var(--neon-yellow); border: 2px solid var(--neon-yellow); }
-        .maybe:hover:not(:disabled) { background: var(--neon-yellow); color: #000; box-shadow: 0 0 15px var(--neon-yellow); }
-        .dk { background: transparent; color: var(--neon-purple); border: 2px solid var(--neon-purple); }
-        .dk:hover:not(:disabled) { background: var(--neon-purple); color: #fff; box-shadow: 0 0 15px var(--neon-purple); }
+        .btn:hover::before { opacity: 1; }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .btn:not(:disabled):active { transform: scale(0.96); }
 
-        .thinking { animation: pulse 1.5s infinite; color: #aaa; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .btn-yes {
+            color: #4ade80;
+            border-color: rgba(74,222,128,0.4);
+        }
+        .btn-yes::before { background: rgba(74,222,128,0.08); }
+        .btn-yes:hover:not(:disabled) {
+            background: rgba(74,222,128,0.12);
+            border-color: #4ade80;
+            box-shadow: 0 0 20px rgba(74,222,128,0.3), inset 0 0 20px rgba(74,222,128,0.05);
+        }
+
+        .btn-no {
+            color: #f87171;
+            border-color: rgba(248,113,113,0.4);
+        }
+        .btn-no::before { background: rgba(248,113,113,0.08); }
+        .btn-no:hover:not(:disabled) {
+            background: rgba(248,113,113,0.12);
+            border-color: #f87171;
+            box-shadow: 0 0 20px rgba(248,113,113,0.3), inset 0 0 20px rgba(248,113,113,0.05);
+        }
+
+        .btn-maybe {
+            color: var(--gold-bright);
+            border-color: rgba(240,201,107,0.4);
+        }
+        .btn-maybe::before { background: rgba(240,201,107,0.08); }
+        .btn-maybe:hover:not(:disabled) {
+            background: rgba(240,201,107,0.12);
+            border-color: var(--gold-bright);
+            box-shadow: var(--glow-gold);
+        }
+
+        .btn-dk {
+            color: var(--purple-bright);
+            border-color: rgba(168,85,247,0.4);
+        }
+        .btn-dk::before { background: rgba(168,85,247,0.08); }
+        .btn-dk:hover:not(:disabled) {
+            background: rgba(168,85,247,0.12);
+            border-color: var(--purple-bright);
+            box-shadow: 0 0 20px rgba(168,85,247,0.3);
+        }
+
+        /* Result controls */
+        #result-controls {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-won {
+            padding: 14px;
+            font-family: 'Cinzel', serif;
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--gold-bright);
+            border: 1px solid var(--gold);
+            border-radius: 10px;
+            cursor: pointer;
+            background: rgba(201,168,76,0.08);
+            transition: all 0.3s;
+        }
+        .btn-won:hover { background: rgba(201,168,76,0.15); box-shadow: var(--glow-gold); }
+
+        .btn-lost {
+            padding: 12px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #f87171;
+            border: 1px solid rgba(248,113,113,0.3);
+            border-radius: 10px;
+            cursor: pointer;
+            background: transparent;
+            transition: all 0.3s;
+        }
+        .btn-lost:hover { background: rgba(248,113,113,0.08); border-color: #f87171; }
+
+        /* ── CONFETTI CANVAS ── */
+        #confetti-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        /* ── WIN OVERLAY ── */
+        #win-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 90;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(3,1,10,0.75);
+            backdrop-filter: blur(6px);
+        }
+
+        .win-box {
+            background: linear-gradient(135deg, rgba(10,3,24,0.95) 0%, rgba(20,8,40,0.95) 100%);
+            border: 1px solid var(--gold);
+            border-radius: 24px;
+            padding: 40px 36px;
+            text-align: center;
+            max-width: 340px;
+            width: 90%;
+            box-shadow: var(--glow-gold), 0 0 100px rgba(201,168,76,0.1);
+            animation: winPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes winPop {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .win-icon { font-size: 64px; margin-bottom: 10px; animation: winSpin 1s ease-out; }
+        @keyframes winSpin { from { transform: rotate(-20deg) scale(0); } to { transform: rotate(0deg) scale(1); } }
+
+        .win-title {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 22px;
+            color: var(--gold-bright);
+            filter: drop-shadow(0 0 10px rgba(201,168,76,0.6));
+            margin-bottom: 8px;
+        }
+
+        .win-subtitle {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            letter-spacing: 2px;
+            color: var(--teal);
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+
+        .win-guess {
+            font-family: 'Cinzel', serif;
+            font-size: 20px;
+            color: #fff;
+            background: rgba(201,168,76,0.1);
+            border: 1px solid rgba(201,168,76,0.3);
+            border-radius: 10px;
+            padding: 12px 20px;
+            margin-bottom: 24px;
+        }
+
+        .win-actions { display: flex; flex-direction: column; gap: 10px; }
+
+        .win-btn {
+            padding: 13px;
+            font-family: 'Cinzel', serif;
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .win-btn-yes {
+            background: rgba(201,168,76,0.15);
+            color: var(--gold-bright);
+            border: 1px solid var(--gold);
+        }
+        .win-btn-yes:hover { background: rgba(201,168,76,0.25); box-shadow: var(--glow-gold); }
+
+        .win-btn-no {
+            background: transparent;
+            color: #888;
+            border: 1px solid #333;
+        }
+        .win-btn-no:hover { color: #f87171; border-color: #f87171; }
+
+        /* Scroll indicator */
+        .scroll-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: rgba(201,168,76,0.3);
+            text-transform: uppercase;
+            z-index: 5;
+            animation: fadeInOut 4s ease-in-out 3s forwards;
+        }
+        @keyframes fadeInOut { 0%{opacity:0} 20%{opacity:1} 80%{opacity:1} 100%{opacity:0; display:none} }
+
+        /* Responsive */
+        @media (max-height: 700px) {
+            .jinn-container { width: 110px; height: 110px; margin: 5px auto; }
+            .jinn-orb { width: 100px; height: 100px; }
+            .jinn-emoji { font-size: 50px; }
+        }
     </style>
 </head>
 <body>
-    <div class="cartoon wizard">🧙‍♂️</div>
-    <div class="cartoon robot">🤖</div>
 
-    <div id="game-box">
-        <div class="top-bar">
-            <button class="reset-btn" onclick="restartGame()">↻ Restart</button>
-        </div>
-        <h1 id="question" class="thinking">Awakening...</h1>
-        
-        <div id="controls" style="display: none;">
-            <button class="btn yes" onclick="sendMove('Yes')">YES</button>
-            <button class="btn no" onclick="sendMove('No')">NO</button>
-            <button class="btn maybe" onclick="sendMove('Maybe')">MAYBE</button>
-            <button class="btn dk" onclick="sendMove('I do not know')">DON'T KNOW</button>
-        </div>
-        
-        <div id="result-controls" style="display: none;">
-            <button class="btn yes" onclick="restartGame()" style="flex: 1 1 100%;">I WON! (Play Again)</button>
-            <button class="btn no" onclick="learn()" style="flex: 1 1 100%; margin-top: 10px;">YOU FAILED.</button>
+<!-- Matrix rain -->
+<canvas id="matrix-canvas"></canvas>
+
+<!-- Nebula backgrounds -->
+<div class="nebula nebula-1"></div>
+<div class="nebula nebula-2"></div>
+<div class="nebula nebula-3"></div>
+
+<!-- Confetti & Win -->
+<canvas id="confetti-canvas"></canvas>
+<div id="win-overlay">
+    <div class="win-box">
+        <div class="win-icon">🔮</div>
+        <div class="win-title">I Knew It!</div>
+        <div class="win-subtitle">The Jinn sees all</div>
+        <div class="win-guess" id="win-guess-text"></div>
+        <div class="win-actions">
+            <button class="win-btn win-btn-yes" onclick="winPlayAgain()">✦ Play Again</button>
+            <button class="win-btn win-btn-no" onclick="winWrong()">That's Wrong</button>
         </div>
     </div>
+</div>
 
-    <script>
-        // 1. Initialize history from Cache
-        let history = JSON.parse(sessionStorage.getItem('mysticHistory')) || [];
-        
-        const questionEl = document.getElementById('question');
-        const controls = document.getElementById('controls');
-        const resultControls = document.getElementById('result-controls');
-        const buttons = document.querySelectorAll('.btn');
+<!-- Main UI -->
+<div class="wrapper">
+    <div class="header">
+        <div class="header-eyebrow">✦ the mind reader ✦</div>
+        <div class="header-title">Avdhez</div>
+        <div class="header-sub">The Ancient Jinn</div>
+    </div>
 
-        // 2. Cache Management Functions
-        function saveState() { sessionStorage.setItem('mysticHistory', JSON.stringify(history)); }
-        function clearState() { sessionStorage.removeItem('mysticHistory'); history = []; }
+    <div class="jinn-container">
+        <div class="jinn-orb"></div>
+        <div class="jinn-emoji" id="jinn-emoji">🧞</div>
+        <div class="jinn-smoke"></div>
+    </div>
+    <div class="jinn-name">▸ Avdhez ◂</div>
 
-        function setLoading(isLoading) {
-            if (isLoading) {
-                questionEl.classList.add('thinking');
-                buttons.forEach(b => b.disabled = true);
-            } else {
-                questionEl.classList.remove('thinking');
-                buttons.forEach(b => b.disabled = false);
-                controls.style.display = 'flex';
-            }
+    <div class="game-card">
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
+
+        <div class="top-bar">
+            <div class="q-counter">Question <span id="q-num">0</span></div>
+            <button class="reset-btn" onclick="restartGame()">↻ New Game</button>
+        </div>
+
+        <div class="question-area">
+            <div class="scan-line" id="scan-line"></div>
+            <div id="question" class="thinking">Awakening...</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div id="controls">
+            <button class="btn btn-yes" onclick="sendMove('Yes')">✓ Yes</button>
+            <button class="btn btn-no" onclick="sendMove('No')">✗ No</button>
+            <button class="btn btn-maybe" onclick="sendMove('Maybe')">◈ Maybe</button>
+            <button class="btn btn-dk" onclick="sendMove('I do not know')">? Don't Know</button>
+        </div>
+
+        <div id="result-controls">
+            <button class="btn-won" onclick="showWinOverlay()">✦ Yes, You Got It!</button>
+            <button class="btn-lost" onclick="learn()">✗ You're Wrong</button>
+        </div>
+    </div>
+</div>
+
+<div class="scroll-hint">Think of anything · The Jinn will find it</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  MATRIX RAIN
+// ══════════════════════════════════════════════
+(function () {
+    const canvas = document.getElementById('matrix-canvas');
+    const ctx = canvas.getContext('2d');
+    const CHARS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ01ابتثجحخدذرزسشصضطظعغفقكلمنهوي∆∇∑∏√∞≈≠';
+    let cols, drops;
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        cols = Math.floor(canvas.width / 20);
+        drops = Array(cols).fill(1);
+    }
+
+    function draw() {
+        ctx.fillStyle = 'rgba(3,1,10,0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < drops.length; i++) {
+            const isGold = Math.random() < 0.05;
+            ctx.fillStyle = isGold ? '#c9a84c' : '#7c3aed';
+            ctx.font = `${Math.random() > 0.8 ? 14 : 12}px monospace`;
+            ctx.fillText(CHARS[Math.floor(Math.random() * CHARS.length)], i * 20, drops[i] * 20);
+            if (drops[i] * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+        }
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+    setInterval(draw, 60);
+})();
+
+// ══════════════════════════════════════════════
+//  FLOATING RUNES
+// ══════════════════════════════════════════════
+const RUNES = ['ᚠ','ᚢ','ᚦ','ᚨ','ᚱ','ᚲ','ᚷ','ᚹ','ᚺ','ᚾ','ᛁ','ᛃ','ᛇ','ᛈ','ᛉ','ᛊ','ᛏ','ᛒ','ᛖ','ᛗ','ᛚ','ᛜ','ᛞ','ᛟ','✦','✧','◈','⟁','⟃','∆','∇'];
+function spawnRune() {
+    const el = document.createElement('div');
+    el.className = 'rune';
+    el.textContent = RUNES[Math.floor(Math.random() * RUNES.length)];
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.animationDuration = (12 + Math.random() * 20) + 's';
+    el.style.animationDelay = (Math.random() * 5) + 's';
+    el.style.fontSize = (12 + Math.random() * 16) + 'px';
+    el.style.opacity = '0';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 35000);
+}
+setInterval(spawnRune, 1800);
+
+// ══════════════════════════════════════════════
+//  CONFETTI ENGINE
+// ══════════════════════════════════════════════
+const confettiCanvas = document.getElementById('confetti-canvas');
+const cctx = confettiCanvas.getContext('2d');
+confettiCanvas.width = window.innerWidth;
+confettiCanvas.height = window.innerHeight;
+window.addEventListener('resize', () => {
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+});
+
+let particles = [];
+const COLORS = ['#c9a84c','#f0c96b','#00e5cc','#a855f7','#f87171','#4ade80','#fff','#e8d5b0'];
+
+function createParticle(x, y) {
+    return {
+        x, y,
+        vx: (Math.random() - 0.5) * 14,
+        vy: (Math.random() - 0.8) * 16,
+        size: Math.random() * 8 + 3,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        gravity: 0.4,
+        spin: (Math.random() - 0.5) * 0.3,
+        angle: Math.random() * Math.PI * 2,
+        shape: Math.random() > 0.5 ? 'rect' : 'circle',
+        alpha: 1,
+        decay: 0.012 + Math.random() * 0.008
+    };
+}
+
+function blast(x, y, count = 120) {
+    for (let i = 0; i < count; i++) particles.push(createParticle(x, y));
+}
+
+function multiBlast() {
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    blast(cx, cy, 100);
+    setTimeout(() => { blast(cx * 0.3, cy * 0.3, 60); blast(cx * 1.7, cy * 0.3, 60); }, 200);
+    setTimeout(() => { blast(cx * 0.2, cy * 1.2, 50); blast(cx * 1.8, cy * 1.2, 50); }, 400);
+    setTimeout(() => { blast(cx, cy * 0.2, 80); }, 600);
+}
+
+function animateConfetti() {
+    requestAnimationFrame(animateConfetti);
+    if (particles.length === 0) {
+        cctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        return;
+    }
+    cctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    particles = particles.filter(p => p.alpha > 0);
+    particles.forEach(p => {
+        p.vy += p.gravity;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.angle += p.spin;
+        p.alpha -= p.decay;
+        cctx.save();
+        cctx.globalAlpha = Math.max(0, p.alpha);
+        cctx.translate(p.x, p.y);
+        cctx.rotate(p.angle);
+        cctx.fillStyle = p.color;
+        if (p.shape === 'rect') {
+            cctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+        } else {
+            cctx.beginPath();
+            cctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+            cctx.fill();
+        }
+        cctx.restore();
+    });
+}
+animateConfetti();
+
+// ══════════════════════════════════════════════
+//  GAME LOGIC
+// ══════════════════════════════════════════════
+let history = JSON.parse(sessionStorage.getItem('avdhezHistory')) || [];
+let questionCount = parseInt(sessionStorage.getItem('avdhezQCount')) || 0;
+let pendingGuess = '';
+
+const questionEl = document.getElementById('question');
+const controls = document.getElementById('controls');
+const resultControls = document.getElementById('result-controls');
+const scanLine = document.getElementById('scan-line');
+const qNum = document.getElementById('q-num');
+const jinnEmoji = document.getElementById('jinn-emoji');
+
+function saveState() {
+    sessionStorage.setItem('avdhezHistory', JSON.stringify(history));
+    sessionStorage.setItem('avdhezQCount', questionCount);
+}
+
+function clearState() {
+    sessionStorage.removeItem('avdhezHistory');
+    sessionStorage.removeItem('avdhezQCount');
+    history = [];
+    questionCount = 0;
+}
+
+function setLoading(isLoading) {
+    const btns = document.querySelectorAll('.btn, .btn-won, .btn-lost');
+    if (isLoading) {
+        questionEl.className = 'thinking';
+        questionEl.textContent = ['Reading your mind...', 'Consulting the void...', 'Sensing your thoughts...', 'The jinn awakens...'][Math.floor(Math.random() * 4)];
+        scanLine.classList.add('active');
+        btns.forEach(b => b.disabled = true);
+        jinnEmoji.textContent = '🔮';
+    } else {
+        questionEl.className = '';
+        scanLine.classList.remove('active');
+        btns.forEach(b => b.disabled = false);
+        controls.style.display = 'grid';
+        jinnEmoji.textContent = '🧞';
+    }
+}
+
+function updateCounter() {
+    qNum.textContent = questionCount;
+}
+
+function restartGame() {
+    clearState();
+    resultControls.style.display = 'none';
+    controls.style.display = 'none';
+    document.getElementById('win-overlay').style.display = 'none';
+    updateCounter();
+    sendMove('Start');
+}
+
+async function sendMove(input) {
+    setLoading(true);
+    const actualInput = input === 'Start' ? "Let's start!" : input;
+
+    try {
+        const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ history, userInput: actualInput })
+        });
+
+        const rawText = await res.text();
+        let data;
+        try { data = JSON.parse(rawText); }
+        catch {
+            questionEl.textContent = "A ripple in the void — click again.";
+            setLoading(false);
+            return;
         }
 
-        function restartGame() {
-            clearState();
-            resultControls.style.display = 'none';
+        if (data.isRateLimit) {
+            questionEl.textContent = data.question;
+            questionEl.style.color = '#c9a84c';
+            setTimeout(() => { questionEl.style.color = ''; }, 3000);
+            setLoading(false);
+            return;
+        }
+
+        if (data.question && data.question.includes('ERROR')) {
+            questionEl.textContent = data.question;
+            setLoading(false);
+            return;
+        }
+
+        if (data.isGuess) {
+            pendingGuess = data.finalAnswer;
+            questionEl.textContent = `Is it... ${data.finalAnswer}?`;
+            questionEl.className = '';
+            scanLine.classList.remove('active');
+            jinnEmoji.textContent = '🧞';
             controls.style.display = 'none';
-            sendMove('Start');
+            resultControls.style.display = 'flex';
+        } else {
+            questionCount++;
+            updateCounter();
+            questionEl.textContent = data.question;
+            setLoading(false);
         }
 
-        // 3. Core Game Logic
-        async function sendMove(input) {
-            setLoading(true);
-            const actualInput = input === 'Start' ? "Let's start" : input;
+        history.push({ role: 'user', text: actualInput });
+        history.push({ role: 'model', text: JSON.stringify(data) });
+        saveState();
 
-            try {
-                const res = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ history, userInput: actualInput })
-                });
-                
-                // --- THE JSON SHIELD ---
-                // We read the raw text first to prevent 'Unexpected token' crashes
-                const rawText = await res.text();
-                let data;
-                try {
-                    data = JSON.parse(rawText);
-                } catch (parseError) {
-                    console.error("Server sent non-JSON:", rawText);
-                    questionEl.innerText = "A glitch in the matrix! Click your answer again.";
-                    setLoading(false);
-                    return; 
-                }
-                // -----------------------
+    } catch (err) {
+        questionEl.textContent = `Connection severed: ${err.message}`;
+        setLoading(false);
+    }
+}
 
-                if (data.isRateLimit) {
-                    questionEl.innerText = data.question;
-                    questionEl.style.color = "var(--neon-yellow)"; 
-                    setTimeout(() => { questionEl.style.color = "var(--text-color)"; }, 3000);
-                    setLoading(false);
-                    return;
-                }
+function showWinOverlay() {
+    document.getElementById('win-guess-text').textContent = pendingGuess || 'Your thought';
+    const overlay = document.getElementById('win-overlay');
+    overlay.style.display = 'flex';
+    setTimeout(multiBlast, 100);
+    setTimeout(multiBlast, 800);
+    setTimeout(multiBlast, 1600);
+}
 
-                if (data.question && data.question.includes("ERROR")) {
-                    questionEl.innerText = data.question;
-                    setLoading(false);
-                    return;
-                }
+function winPlayAgain() {
+    document.getElementById('win-overlay').style.display = 'none';
+    restartGame();
+}
 
-                if (data.isGuess) {
-                    questionEl.innerText = `Is it ${data.finalAnswer}?`;
-                    controls.style.display = 'none';
-                    resultControls.style.display = 'flex';
-                    resultControls.style.flexWrap = 'wrap';
-                } else {
-                    questionEl.innerText = data.question;
-                    setLoading(false);
-                }
+function winWrong() {
+    document.getElementById('win-overlay').style.display = 'none';
+    learn();
+}
 
-                // Save to cache after updating UI
-                history.push({ role: "user", text: actualInput });
-                history.push({ role: "model", text: JSON.stringify(data) });
-                saveState();
+async function learn() {
+    const correctThing = prompt('The Jinn was wrong. What were you thinking of?');
+    if (!correctThing) return;
 
-            } catch (error) {
-                console.error(error);
-                questionEl.innerText = `FRONTEND CRASH: ${error.message}`;
-                setLoading(false);
-            }
-        }
+    questionEl.textContent = 'Absorbing knowledge...';
+    questionEl.className = 'thinking';
+    scanLine.classList.add('active');
+    resultControls.style.display = 'none';
 
-        // 4. Learning Mode
-        async function learn() {
-            const correctThing = prompt("You defeated me! What was it?");
-            if (!correctThing) return;
+    try {
+        await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ history, isCorrection: true, correctThing })
+        });
+    } catch {}
 
-            questionEl.innerText = "Analyzing...";
-            questionEl.classList.add('thinking');
-            resultControls.style.display = 'none';
+    restartGame();
+}
 
-            try {
-                await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ history, isCorrection: true, correctThing })
-                });
-                alert("Knowledge absorbed. I am smarter now.");
-            } catch (err) {
-                alert("Failed to save memory.");
-            }
-            restartGame();
-        }
-
-        // 5. Resume from Cache or Start New on Load
-        window.onload = () => {
-            if (history.length > 0) {
-                try {
-                    const lastMessage = history[history.length - 1];
-                    const lastData = JSON.parse(lastMessage.text);
-                    if (lastData.isGuess) {
-                        questionEl.innerText = `Is it ${lastData.finalAnswer}?`;
-                        controls.style.display = 'none';
-                        resultControls.style.display = 'flex';
-                        resultControls.style.flexWrap = 'wrap';
-                    } else {
-                        questionEl.innerText = lastData.question;
-                        setLoading(false);
-                    }
-                } catch (e) {
-                    restartGame();
-                }
+// Resume or start
+window.onload = () => {
+    updateCounter();
+    if (history.length > 0) {
+        try {
+            const last = history[history.length - 1];
+            const data = JSON.parse(last.text);
+            if (data.isGuess) {
+                pendingGuess = data.finalAnswer;
+                questionEl.textContent = `Is it... ${data.finalAnswer}?`;
+                questionEl.className = '';
+                controls.style.display = 'none';
+                resultControls.style.display = 'flex';
             } else {
-                sendMove('Start');
+                questionEl.textContent = data.question;
+                questionEl.className = '';
+                controls.style.display = 'grid';
             }
-        };
-    </script>
+        } catch { restartGame(); }
+    } else {
+        sendMove('Start');
+    }
+};
+</script>
 </body>
 </html>
