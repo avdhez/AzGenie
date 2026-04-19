@@ -14,8 +14,6 @@ module.exports = async function handler(req, res) {
     const { history, userInput, isCorrection, correctThing } = req.body;
     const safeHistory = history ? history.map(h => ({ role: h.role, parts: [{ text: h.text }] })) : [];
 
-    let lastError = null; // <-- track real error
-
     for (let i = 0; i < keyArray.length; i++) {
         const currentKey = keyArray[i];
 
@@ -23,7 +21,7 @@ module.exports = async function handler(req, res) {
             const genAI = new GoogleGenerativeAI(currentKey);
 
             const model = genAI.getGenerativeModel({
-                model: "gemini-2.0-flash-lite",
+                model: "gemini-1.5-flash",
                 systemInstruction: `
                     You are 'The Mystic Node', an Akinator-style mind-reading bot. You must figure out what the user is thinking of.
                     CRITICAL RULES:
@@ -53,21 +51,22 @@ module.exports = async function handler(req, res) {
 
         } catch (error) {
             const msg = (error.message || "").toLowerCase();
-            const status = error.status || error.statusCode || error.code;
+            const status = error.status || error.code;
 
-            // Save the real error every time so we can show it at the end
-            lastError = `Key${i + 1} | status:${status} | ${error.message}`;
-            console.error(lastError);
+            // Log the real error so you can see it in Vercel logs
+            console.error(`Key ${i + 1}/${keyArray.length} failed — status: ${status} | message: ${error.message}`);
 
-            // Only skip to next key for rate limits or dead keys
+            // ONLY skip to next key for rate limits
             if (status === 429 || msg.includes("429") || msg.includes("quota") || msg.includes("rate limit")) {
                 continue;
             }
+
+            // ONLY skip to next key for dead/invalid keys
             if (msg.includes("api_key_invalid") || msg.includes("invalid api key") || msg.includes("expired")) {
                 continue;
             }
 
-            // Scrambled JSON
+            // Scrambled JSON — ask user to click again, no key switch needed
             if (msg.includes("format scrambled") || msg.includes("unexpected token")) {
                 return res.status(200).json({
                     question: "The magic got scrambled. Can you click your answer again?",
@@ -76,14 +75,13 @@ module.exports = async function handler(req, res) {
                 });
             }
 
-            // Any other hard error — stop immediately and show it
+            // Everything else (model not found, network error, etc.) = stop and show the real error
             return res.status(200).json({ question: `SERVER ERROR: ${error.message}`, isGuess: false });
         }
     }
 
-    // Show the REAL last error instead of a generic message
     return res.status(200).json({
-        question: `All keys failed. Last error: ${lastError}`,
+        question: `All ${keyArray.length} neural pathways are rate-limited. Please wait a moment and try again.`,
         isGuess: false,
         isRateLimit: true
     });
