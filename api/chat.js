@@ -8,12 +8,64 @@ function withTimeout(promise, ms) {
 }
 
 function parseJSON(text) {
-    const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+    // Strip markdown fences
+    let cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+
+    // Extract outermost { ... }
     const match = cleaned.match(/\{[\s\S]*\}/);
     if (!match) throw new Error("Format Scrambled");
-    const parsed = JSON.parse(match[0].trim());
-    if (!parsed.question) throw new Error("Format Scrambled: missing question");
-    return parsed;
+
+    let raw = match[0].trim();
+
+    // ── Attempt 1: parse as-is ──
+    try {
+        const parsed = JSON.parse(raw);
+        if (!parsed.question) throw new Error("missing question");
+        return parsed;
+    } catch (_) {}
+
+    // ── Attempt 2: repair common model mistakes ──
+    let fixed = raw
+        // Replace single-quoted string values and keys with double quotes
+        .replace(/'/g, '"')
+        // Remove trailing commas before } or ]
+        .replace(/,\s*([}\]])/g, '$1')
+        // Quote unquoted keys: word: → "word":
+        .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":')
+        // Fix boolean/null that got quoted
+        .replace(/"(true|false|null)"/g, '$1');
+
+    try {
+        const parsed = JSON.parse(fixed);
+        if (!parsed.question) throw new Error("missing question");
+        return parsed;
+    } catch (_) {}
+
+    // ── Attempt 3: extract fields individually with regex ──
+    const get = (key) => {
+        const m = raw.match(new RegExp(`["']?${key}["']?\\s*:\\s*["']([\\s\\S]*?)["'](?:\\s*[,}])`));
+        return m ? m[1].trim() : "";
+    };
+    const getBool = (key) => {
+        const m = raw.match(new RegExp(`["']?${key}["']?\\s*:\\s*(true|false)`));
+        return m ? m[1] === 'true' : false;
+    };
+    const getNum = (key) => {
+        const m = raw.match(new RegExp(`["']?${key}["']?\\s*:\\s*(\\d+)`));
+        return m ? parseInt(m[1]) : 0;
+    };
+
+    const question = get("question");
+    if (!question) throw new Error("Format Scrambled");
+
+    return {
+        reasoning:   get("reasoning"),
+        hypothesis:  get("hypothesis"),
+        question,
+        isGuess:     getBool("isGuess"),
+        finalAnswer: get("finalAnswer"),
+        confidence:  getNum("confidence"),
+    };
 }
 
 // Compress each Q&A into a tiny semantic token: tag:y / tag:n / tag:?
