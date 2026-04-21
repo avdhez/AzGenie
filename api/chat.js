@@ -382,4 +382,46 @@ Reply ONLY with JSON: {"reasoning":"why","hypothesis":"${parsed.hypothesis || pa
                         temperature: 0.2,
                         max_tokens: 300,
                     }), 12000);
-                    const vp = pars
+                    const vp = parseJSON(vc.choices[0]?.message?.content || "");
+                    return res.status(200).json({ question: vp.question, isGuess: false, finalAnswer: "" });
+                } catch {
+                    return res.status(200).json({ question: parsed.question, isGuess: false, finalAnswer: "" });
+                }
+            }
+
+            return res.status(200).json({
+                question: parsed.question,
+                isGuess: parsed.isGuess || false,
+                finalAnswer: parsed.finalAnswer || ""
+            });
+
+        } catch (error) {
+            const msg = (error.message || "").toLowerCase();
+            const status = error.status || error.statusCode;
+            lastError = error;
+            console.error(`Key${i+1}/${keyArray.length} — ${status} | ${error.message}`);
+
+            // Skip to next key for any account/key level error
+            if (
+                msg.includes('timeout') ||
+                status === 429 || msg.includes("429") || msg.includes("quota") || msg.includes("rate limit") ||
+                status === 401 || msg.includes("invalid api key") || msg.includes("unauthorized") || msg.includes("expired") ||
+                status === 400 || msg.includes("organization_restricted") || msg.includes("restricted") ||
+                msg.includes("suspended") || msg.includes("banned") || msg.includes("account")
+            ) continue;
+
+            // Broken JSON from model
+            if (msg.includes("format scrambled") || msg.includes("unexpected token")) {
+                return res.status(200).json({ question: "The vision blurred — click your answer again.", isGuess: false, isRateLimit: true });
+            }
+
+            return res.status(200).json({ question: `SERVER ERROR: ${error.message}`, isGuess: false });
+        }
+    }
+
+    return res.status(200).json({
+        question: "The Jinn needs a moment to recover. Please try again.",
+        isGuess: false,
+        isRateLimit: true
+    });
+};
