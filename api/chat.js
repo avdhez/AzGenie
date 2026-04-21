@@ -1,4 +1,4 @@
-const Cerebras = require("@cerebras/cerebras_cloud_sdk");
+const Cerebras = require("@cerebras/cerebras_cloud_sdk").default;
 
 function withTimeout(promise, ms) {
     return Promise.race([
