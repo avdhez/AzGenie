@@ -168,7 +168,7 @@ module.exports = async function handler(req, res) {
             try {
                 const client = new Cerebras({ apiKey: keyArray[i] });
                 await withTimeout(client.chat.completions.create({
-                    model: "llama-3.3-70b",
+                    model: "qwen-3-235b-a22b-instruct-2507",
                     messages: [
                         { role: "system", content: `Reply ONLY with this JSON: {"reasoning":"Noted.","hypothesis":"","question":"The Jinn learns from every defeat. Shall we play again?","isGuess":false,"finalAnswer":"","confidence":0}` },
                         { role: "user", content: `Answer was "${correctThing}".` }
