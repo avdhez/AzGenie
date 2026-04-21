@@ -3,7 +3,7 @@ const Cerebras = require("@cerebras/cerebras_cloud_sdk").default;
 // Cerebras available models (in order of preference):
 // "llama-3.3-70b"  — best quality, may need account approval
 // "llama3.1-8b"    — always available on free tier, faster
-const CEREBRAS_MODEL = "qwen-3-235b-a22b-instruct-2507";
+const CEREBRAS_MODEL = "llama3.1-8b";
 
 function withTimeout(promise, ms) {
     return Promise.race([
