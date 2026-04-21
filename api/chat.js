@@ -401,12 +401,16 @@ Reply ONLY with JSON: {"reasoning":"why","hypothesis":"${parsed.hypothesis || pa
             lastError = error;
             console.error(`Key${i+1}/${keyArray.length} — ${status} | ${error.message}`);
 
+            // Skip to next key for any account/key level error
             if (
                 msg.includes('timeout') ||
                 status === 429 || msg.includes("429") || msg.includes("quota") || msg.includes("rate limit") ||
-                status === 401 || msg.includes("invalid api key") || msg.includes("unauthorized") || msg.includes("expired")
+                status === 401 || msg.includes("invalid api key") || msg.includes("unauthorized") || msg.includes("expired") ||
+                status === 400 || msg.includes("organization_restricted") || msg.includes("restricted") ||
+                msg.includes("suspended") || msg.includes("banned") || msg.includes("account")
             ) continue;
 
+            // Broken JSON from model
             if (msg.includes("format scrambled") || msg.includes("unexpected token")) {
                 return res.status(200).json({ question: "The vision blurred — click your answer again.", isGuess: false, isRateLimit: true });
             }
